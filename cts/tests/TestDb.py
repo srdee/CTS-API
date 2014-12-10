@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from nose import with_setup
+from nose.tools import assert_is_instance
 
-from cts.software.db import DB
+from cts.software.db import DB, instantiate, ExistDB, BaseX
 import os
 import shutil
 
@@ -17,6 +18,15 @@ test_url_file = test_zip_file
 def clean_test_output_dir():
     """ Remove data fixture directory """
     shutil.rmtree(test_output_dir, ignore_errors=True)
+
+
+def test_instantiate():
+    """ Test object generation and type retrieved from string """
+    exist = instantiate(software="existDB", version="2.2", source="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
+    assert_is_instance(exist, ExistDB)
+
+    basex = instantiate(software="BaseX", version="2.2", source="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
+    assert_is_instance(basex, BaseX)
 
 
 def test_version():
