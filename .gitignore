@@ -55,3 +55,4 @@ target/
 
 #Config files
 config.json
+cts/tests/test_output_dir/*
