@@ -72,7 +72,7 @@ class File(object):
         :returns: Indicates if the process has been successful
         :rtype: boolean
         """
-        subprocess.call(['wget', '-r', '-l', '1', '-nv', '-p', '-O', self.path, self.source])
+        subprocess.call(['wget', '-l', '1', '-nv', '-O', self.path, self.source])
         return self.check(force=False)
 
     def _clone(self):

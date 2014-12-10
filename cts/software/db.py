@@ -63,16 +63,16 @@ class DB(object):
         return self.file.get()
 
 
-class ExistDB(object):
+class ExistDB(DB):
     """Implementation of DB for ExistDB"""
     def __init__(self, software, version, source, path, target="./"):
-        super(ExistDB, self).__init__()
+        super(ExistDB, self).__init__(software=software, version=version, source=source, path=path, target=target)
 
 
-class BaseX(object):
+class BaseX(DB):
     """Implementation of DB for BaseX"""
     def __init__(self, software, version, source, path, target="./"):
-        super(BaseX, self).__init__()
+        super(BaseX, self).__init__(software=software, version=version, source=source, path=path, target=target)
 
 
 def instantiate(software, version, source, path, target="./"):
