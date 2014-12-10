@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 import os
-import wget
 import subprocess
 import shutil
 import zipfile
@@ -73,7 +72,7 @@ class File(object):
         :returns: Indicates if the process has been successful
         :rtype: boolean
         """
-        wget.download(self.source, self.path)
+        subprocess.call(['wget', '-r', '-l', '1', '-nv', '-p', '-O', self.path, self.source])
         return self.check(force=False)
 
     def _clone(self):
