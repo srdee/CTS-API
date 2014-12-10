@@ -5,14 +5,9 @@ from __future__ import with_statement
 
 import os
 import datetime
-import subprocess
+import json
 
-from datetime import datetime
-from fabric.api import *
-from fabric.contrib.console import confirm
-from fabric.contrib.project import upload_project
-from fabric.contrib.files import exists
-from contextlib import contextmanager as _contextmanager
+import cts
 
 # globals
 env.project_name = 'cts-api'
@@ -27,6 +22,19 @@ TIMESTAMP_FORMAT = "%Y%m%d%H%M%S"
 # environments
 
 
+def _get_config():
+    """ Loads the JSON file data into Fabric """
+    with open("config.json") as f:
+        env.config = json.load(f)
+    if not env.config:
+        raise ValueError("No config file available")
+
+
+def _fill_config():
+    """ Create needed instances """
+    env.software = cts.software.db.DB(software=env.config["software"][, version, source, path)
+
+
 def check_git_version():
     """Ensure we have access to git
 
@@ -39,6 +47,9 @@ def check_git_version():
 def deploy():
     """Build a clean local version and deploy."""
     check_git_version()
+    _get_config()
+    _fill_config()
+    print(env.software)
     #local("%(play_bin)s clean stage" % env)
 
 
