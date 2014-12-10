@@ -7,8 +7,10 @@ Fabric deployment script for the CTS-API
 from __future__ import with_statement
 
 import os
-from datetime import datetime
 import json
+
+from datetime import datetime
+
 from fabric.api import *
 
 from cts.software import db
