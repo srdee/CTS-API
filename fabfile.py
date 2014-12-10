@@ -28,7 +28,9 @@ TIMESTAMP_FORMAT = "%Y%m%d%H%M%S"
 
 
 def check_git_version():
-    "Ensure we have access to git"
+    """Ensure we have access to git
+
+    """
     version_string = local("git --version", capture=True)
     if version_string.find("git version {0}".format(env.git_version)) == -1:
         abort("Incorrect git version version: should be at least 1.{0}".format(env.git_version))
