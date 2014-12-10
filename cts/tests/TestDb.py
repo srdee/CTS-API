@@ -34,7 +34,7 @@ def test_version():
 def test_local():
     """ Test that local file can be copied """
     db = DB(software="existDB", version="0.0.1", source="local", path=test_file_dir+"false.jar", target=test_output_dir)
-    db.get()
+    assert db.get() is True
     assert db.file.check() is True
     assert os.path.isfile(test_output_dir + "false.jar") is True
 
@@ -43,7 +43,7 @@ def test_local():
 def test_git():
     """ Test that git files can be cloned """
     db = DB(software="existDB", version="0.0.1", source="git", path=test_git_repo, target=test_output_dir)
-    db.get()
+    assert db.get() is True
     assert db.file.check() is True
     assert os.path.isdir(test_output_dir + "CTS-Nose-Test-Repo") is True
     assert os.path.isfile(test_output_dir + "CTS-Nose-Test-Repo/README.md") is True
