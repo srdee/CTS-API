@@ -57,3 +57,5 @@ target/
 config.json
 cts/tests/test_output_dir/
 build/
+*.basex-config
+*.exist-config

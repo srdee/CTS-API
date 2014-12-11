@@ -1,12 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from ..db import DB
 from .baseX import BaseX
 from .existDB import ExistDB
 
 
-def instantiate(software, version, source, path, target="./"):
+def instantiate(software, version, source, path, target="./", user=None):
     """ Initiate the object
 
     :param software: Name of the software
@@ -23,8 +22,8 @@ def instantiate(software, version, source, path, target="./"):
     :rtype: DB subclass
     """
     if software.lower() == "existdb":
-        return ExistDB(software=software, version=version, source=source, path=path, target=target)
+        return ExistDB(software=software, version=version, source=source, path=path, target=target, user=user)
     elif software.lower() == "basex":
-        return BaseX(software=software, version=version, source=source, path=path, target=target)
+        return BaseX(software=software, version=version, source=source, path=path, target=target, user=user)
     else:
         raise NotImplemented("This DB software is not implemented yet.")

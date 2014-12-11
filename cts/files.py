@@ -8,7 +8,7 @@ import zipfile
 
 class File(object):
     """ Abstraction for File Objects"""
-    def __init__(self, source, target, method):
+    def __init__(self, source, target, method, chmod=0777):
         """ Feeds methods of object
 
         :param source: A url, path or git repository from which to retrieve file(s)
@@ -17,12 +17,32 @@ class File(object):
         :type target: str or unicode
         :param method: A value of inside ["git", "url", "local"]
         :type method: str or unicode
+        :param chmod: A chmod code for the file to be set
+        :type chmod: int
 
         """
         self.source = source
         self.target = target
+        self.directory = self.target
         self.method = method
         self._path()
+        self.chmod = chmod
+
+    def _set_chmod(self, chmod=None):
+        """ Set file to a certain chmod using self.chmod
+
+        :param chmod: A chmod code for the file to be set
+        :type chmod: int
+        :returns: Success indicator
+        :rtype: boolean
+
+        """
+        if not chmod:
+            chmod = self.chmod
+        if os.chmod(self.path, self.chmod):
+            self.chmod = chmod
+            return True
+        return False
 
     def _path(self):
         """ Defines self.path given self.source, self.method and self.target """
@@ -73,6 +93,7 @@ class File(object):
         :rtype: boolean
         """
         subprocess.call(['wget', '-l', '1', '-nv', '-O', self.path, self.source])
+        self._set_chmod()
         return self.check(force=False)
 
     def _clone(self):
@@ -82,6 +103,7 @@ class File(object):
         :rtype: boolean
         """
         subprocess.call(['git', 'clone', self.source, self.path])
+        self._set_chmod()
         return self.check(force=False)
 
     def _copy(self):
@@ -97,6 +119,7 @@ class File(object):
         else:
             raise ValueError("Local path does not exist")
 
+        self._set_chmod()
         return self.check(force=False)
 
     def check(self, force=False):

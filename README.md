@@ -20,7 +20,11 @@ This CTS-API deployement uses a json file for its configuration.
 		"software"	: "existDB",  // Available : existDB
 		"version"	: "2.2",
 		"source"	: "url", // Available : local, url
-		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar"  // A url or an absolute path
+		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",  // A url or an absolute path
+		"user"		: {
+			"name" : "admin",
+			"password" : "password"
+		}
 	},
 	"repositories" : {
 		"canonical_example" : {
@@ -38,7 +42,7 @@ This CTS-API deployement uses a json file for its configuration.
 }
 ```
 
-## What de deployement steps include
+## What the deployement steps should include
 The fabfile should do the following things :
 - Download or ensure that resources are available, wether it's **text** or **software**
 - Ensure text and inventory are CTS compliant
@@ -48,3 +52,6 @@ The fabfile should do the following things :
 - Unzip on the server
 - Ensure version rollback possibilites using symlink and reducing downtime 
 - Do some tests
+
+##Deployement command
+`fab deploy`
