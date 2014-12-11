@@ -1,12 +1,17 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
+import shutil
+
 from nose import with_setup
 from nose.tools import assert_is_instance
 
-from cts.software.db import DB, instantiate, ExistDB, BaseX
-import os
-import shutil
+from cts.db import DB
+from cts.software.baseX import BaseX
+from cts.software.existDB import ExistDB
+from cts.software.helper import instantiate
+
 
 test_file_dir = os.path.dirname(os.path.abspath(__file__)) + "/test_files/"
 test_output_dir = os.path.dirname(os.path.abspath(__file__)) + "/test_output_dir/"
