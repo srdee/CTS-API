@@ -54,7 +54,7 @@ def _check_git_version():
     """Ensure we have access to git """
     version_string = local("git --version", capture=True)
     if version_string.find("git version {0}".format(env.git_version)) == -1:
-        abort("Incorrect git version version: should be at least 1.{0}".format(env.git_version))
+        abort("Incorrect git version version: should be at least {0}".format(env.git_version))
 
 
 def _get_build_dir():
@@ -80,7 +80,7 @@ def db_start():
 
 def deploy():
     """ Build a clean local version and deploy. """
-    _check_git_version()
+    #_check_git_version()
     print("Downloading DB software")
     env.db.get()
     db_setup()
