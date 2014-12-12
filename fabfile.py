@@ -15,6 +15,8 @@ from fabric.api import *
 import cts.software.helper
 from cts.db import Credential
 from cts import shell
+from cts.resources import Corpus
+
 # globals
 env.project_name = 'cts-api'
 env.prod = False
@@ -48,6 +50,10 @@ def _fill_config():
         target=env.build_dir + "/db",
         user=user
     )
+
+    env.corpora = [
+        Corpus(method=r["method"], path=r["path"], resources=r["resources"], target=env.build_dir + "/data") for r in env.config["repositories"]
+    ]
 
 
 def _check_git_version():
@@ -83,6 +89,8 @@ def deploy():
     #_check_git_version()
     print("Downloading DB software")
     env.db.retrieve()
+    for corpus in env.corpora:
+        corpus.retrieve()
     db_setup()
     db_start()
     db_stop()

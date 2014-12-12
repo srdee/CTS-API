@@ -19,26 +19,25 @@ This CTS-API deployement uses a json file for its configuration.
 	"db" : {
 		"software"	: "existDB",  // Available : existDB
 		"version"	: "2.2",
-		"source"	: "url", // Available : local, url
+		"method"	: "url", // Available : local, url
 		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",  // A url or an absolute path
 		"user"		: {
 			"name" : "admin",
 			"password" : "password"
 		}
 	},
-	"repositories" : {
-		"canonical_example" : {
-			"source" : "git",  // Defines which tool to use to retrieve the data. Available : git, local
+	"repositories" : [
+			"method" : "git",  // Defines which tool to use to retrieve the data. Available : git, local
 			"path" : "https://github.com/PerseusDL/canonical.git", // For git, a URL, for local, an absolute path
-			"ressources" : [
+			"resources" : [
 				{
-					"texts" : "./CTS_XML_TEI/perseus",  // The folder in which fab will find the texts
-					"inventory" : "./CTS_XML_TextInventory/allcts.xml" // The file which holds CTS informations
+					"name" : "canonical_example" //Name of the collection, optional
+					"texts" : "./canonical/CTS_XML_TEI/perseus",  // The folder in which fab will find the texts
+					"inventory" : "./canonical/CTS_XML_TextInventory/allcts.xml" // The file which holds CTS informations
 				}
 			]
 
-		}
-	}
+		]
 }
 ```
 
