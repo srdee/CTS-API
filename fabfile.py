@@ -82,7 +82,7 @@ def deploy():
     """ Build a clean local version and deploy. """
     #_check_git_version()
     print("Downloading DB software")
-    env.db.get()
+    env.db.retrieve()
     db_setup()
     db_start()
     db_stop()

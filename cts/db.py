@@ -90,7 +90,7 @@ class DB(object):
         instance = File(source=path, target=target, method=source)
         return instance
 
-    def get(self):
+    def retrieve(self):
         """ Get the file used for running the DB
 
         :returns: Boolean indicating if the file exists
