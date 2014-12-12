@@ -99,13 +99,15 @@ class DB(object):
         """
         return self.file.get()
 
-    def put(self, path):
+    def put(self, path, collection=None):
         """ Push XML file(s) into the XML database
 
         :param path: Path to a directory
         :type path: unicode or str
+        :param: Collection name (None by default, overwritten by the last element of path)
         :returns: Boolean indicating success
         :rtype: boolean
+
 
         """
         raise NotImplemented("This function is not implemented in this class")

@@ -35,8 +35,12 @@ class ExistDB(DB):
         return [shell.Helper("{0}/conf/bin/startup.sh".format(self.directory))]
 
     def stop(self):
-        print (self.user)
         if self.user.password:
             return [shell.Command("{0}/conf/bin/shutdown.sh -p {1}".format(self.directory, self.user.password))]
         else:
             return [shell.Command("{0}/conf/bin/shutdown.sh".format(self.directory))]
+
+    def put(self, path, collection=None):
+        if collection:
+            collection = path.split("/")[-1]
+        return [shell.Command("{binPath}bin/client.sh -m /db/{collection} -p {textPath}".format(textPath=path, binPath=self.directory+"/conf/", collection=collection))]
