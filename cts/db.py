@@ -61,6 +61,7 @@ class DB(object):
         if user:
             self.user = user
         self.file = self._feed_file_instance(source=source, path=path, target=target)
+        self.set_directory()
 
     def _version_tuple(self, version):
         """ Return a tuple representing the version for further tests
@@ -108,3 +109,16 @@ class DB(object):
 
         """
         raise NotImplemented("This function is not implemented in this class")
+
+    def set_directory(self, directory = None):
+        """ Sets the binary directory for the database
+
+        :param directory: The directory of binaries for ExistDB
+        :type directory: str or unicode
+        :returns: Directory path
+        :rtype: str or unicode
+        """ 
+        self.directory = directory
+        if directory is None:
+            self.directory = self.file.directory
+        return self.directory

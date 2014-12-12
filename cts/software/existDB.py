@@ -17,9 +17,9 @@ class ExistDB(DB):
             shell.Separator(),
             shell.Helper("java -jar {0} -console".format(self.file.path)),
             shell.Request("Select target path [{0}]".format(os.path.abspath(__file__))),
-            shell.Parameter("{0}".format(self.file.directory + "/conf")),
+            shell.Parameter("{0}".format(self.directory + "/conf")),
             shell.Request("Data dir:  [webapp/WEB-INF/data]"),
-            shell.Parameter("{0}".format(self.file.directory + "/data")),
+            shell.Parameter("{0}".format(self.directory + "/data")),
             shell.Request("Enter password: []"),
             shell.Parameter("Secured password or simply [password]"),
             shell.Request("Enter password: []"),
@@ -32,11 +32,11 @@ class ExistDB(DB):
         ]
 
     def start(self):
-        return [shell.Helper("/home/thibault/dev/CTS-API/build/build_dir//db/conf/bin/startup.sh")]
+        return [shell.Helper("{0}/conf/bin/startup.sh".format(self.directory))]
 
     def stop(self):
         print (self.user)
         if self.user.password:
-            return [shell.Command("/home/thibault/dev/CTS-API/build/build_dir//db/conf/bin/shutdown.sh -p {0}".format(self.user.password))]
+            return [shell.Command("{0}/conf/bin/shutdown.sh -p {1}".format(self.directory, self.user.password))]
         else:
-            return [shell.Command("/home/thibault/dev/CTS-API/build/build_dir//db/conf/bin/shutdown.sh")]
+            return [shell.Command("{0}/conf/bin/shutdown.sh".format(self.directory))]
