@@ -8,8 +8,8 @@ import os
 
 class ExistDB(DB):
     """Implementation of DB for ExistDB"""
-    def __init__(self, software, version, source, path, target="./", user=None):
-        super(ExistDB, self).__init__(software=software, version=version, source=source, path=path, target=target, user=user)
+    def __init__(self, software, version, method, path, target="./", user=None):
+        super(ExistDB, self).__init__(software=software, version=version, method=method, path=path, target=target, user=user)
 
     def setup(self):
         """ Returns a string to do a cmd """

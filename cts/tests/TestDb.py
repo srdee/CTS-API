@@ -27,28 +27,28 @@ def clean_test_output_dir():
 
 def test_instantiate():
     """ Test object generation and type retrieved from string """
-    exist = instantiate(software="existDB", version="2.2", source="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
+    exist = instantiate(software="existDB", version="2.2", method="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
     assert_is_instance(exist, ExistDB)
 
-    basex = instantiate(software="BaseX", version="2.2", source="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
+    basex = instantiate(software="BaseX", version="2.2", method="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
     assert_is_instance(basex, BaseX)
 
 
 def test_version():
     """ Test version conversion in DB objects """
     print("Testing X.X version")
-    db = DB(software="existDB", version="2.2", source="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
+    db = DB(software="existDB", version="2.2", method="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
     assert db.version == (2, 2)
 
     print("Testing X.X.X version")
-    db = DB(software="existDB", version="2.2.2", source="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
+    db = DB(software="existDB", version="2.2.2", method="url", path="http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar")
     assert db.version == (2, 2, 2)
 
 
 @with_setup(None, clean_test_output_dir)
 def test_local():
     """ Test that local file can be copied """
-    db = DB(software="existDB", version="0.0.1", source="local", path=test_file_dir+"false.jar", target=test_output_dir)
+    db = DB(software="existDB", version="0.0.1", method="local", path=test_file_dir+"false.jar", target=test_output_dir)
     assert db.retrieve() is True
     assert db.file.check() is True
     assert os.path.isfile(test_output_dir + "false.jar") is True
@@ -57,7 +57,7 @@ def test_local():
 @with_setup(None, clean_test_output_dir)
 def test_git():
     """ Test that git files can be cloned """
-    db = DB(software="existDB", version="0.0.1", source="git", path=test_git_repo, target=test_output_dir)
+    db = DB(software="existDB", version="0.0.1", method="git", path=test_git_repo, target=test_output_dir)
     assert db.retrieve() is True
     assert db.file.check() is True
     assert os.path.isdir(test_output_dir + "CTS-Nose-Test-Repo") is True
@@ -67,7 +67,7 @@ def test_git():
 @with_setup(None, clean_test_output_dir)
 def test_url():
     """ Test that url file can be downloaded """
-    db = DB(software="existDB", version="0.0.1", source="url", path=test_url_file, target=test_output_dir)
+    db = DB(software="existDB", version="0.0.1", method="url", path=test_url_file, target=test_output_dir)
     assert db.retrieve() is True
     assert db.file.check() is True
     assert os.path.isfile(test_output_dir + "master.zip") is True

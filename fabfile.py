@@ -43,7 +43,7 @@ def _fill_config():
     env.db = cts.software.helper.instantiate(
         software=env.config["db"]["software"],
         version=env.config["db"]["version"],
-        source=env.config["db"]["source"],
+        method=env.config["db"]["method"],
         path=env.config["db"]["path"],
         target=env.build_dir + "/db",
         user=user
