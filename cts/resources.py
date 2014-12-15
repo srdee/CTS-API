@@ -9,6 +9,7 @@
 
 from .files import File
 
+
 class Resource(object):
     """ Object representing an element of Corpus """
     def __init__(self, name, texts, inventory):
