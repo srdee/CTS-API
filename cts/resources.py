@@ -28,10 +28,10 @@ class Resource(object):
 
 class Corpus(object):
     """ Object representing a text resource """
-    def __init__(self, method, path, resources, target ="./"):
+    def __init__(self, method, path, resources, target="./"):
         """ Instantiate a Corpus object, which contains potentially multiple Resource
 
-        :param method: The method to use to retrieve the resources (url, git, local) 
+        :param method: The method to use to retrieve the resources (url, git, local)
         :type method: str or unicode
         :param path: The path of the elements to retrieve
         :type path: str or unicode
