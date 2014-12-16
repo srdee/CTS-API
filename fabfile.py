@@ -37,6 +37,14 @@ def _get_config():
         raise ValueError("No config file available")
 
 
+def _rewriting_rules(dic):
+    """ Reformat rewriting_rules, replacing # with env.build_dir """
+    ret = {}
+    for key in dic:
+        ret[key] = dic[key].replace("#", env.build_dir)
+    return ret
+
+
 def _fill_config():
     """ Create needed instances """
     user = Credential()
@@ -104,6 +112,10 @@ def clean():
 def test():
     """ Use the remote testing server """
     env.hosts = ['cts-test']
+
+
+def test_cts():
+    """ Test the CTS-Compliancy of our data """
 
 
 _get_config()
