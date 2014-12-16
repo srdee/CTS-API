@@ -119,13 +119,11 @@ class TextGroup(object):
 
 class Inventory(object):
     """ Represents a CTS Inventory file """
-    def __init__(self, path=None, lookup_directory=None, rewriting_rules={}, strict=False):
+    def __init__(self, path=None, rewriting_rules={}, strict=False):
         """ Initiate an Inventory object
 
         :param path: The path to the Inventory.xml file
         :type path: str or unicode
-        :param lookup_directory: The path to XML files
-        :type lookup_directory: str or unicode
         :param rewriting_rules: A dictionary where key are string to be replaced by their value
         :type rewriting_rules: dict
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
@@ -176,8 +174,8 @@ class Inventory(object):
         :returns: A list of tests results associated in a tuple with a Text.id
         :rtype: list(tuple(str, tuple(list(boolean), list(ConsoleObject))))
         """
-        docs = self.getDocuments()
+        docs = self.getTexts()
         results = []
         for doc in docs:
-            results.append((doc.id, doc.document.testCitation()))
+            results.append((doc.document.filename, doc.document.testCitation()))
         return results

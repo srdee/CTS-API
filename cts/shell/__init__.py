@@ -14,13 +14,13 @@ def documentTestResults(results):
     for result in results:
         textName, raw_results = result
         status, messages = raw_results
-
         i = 0
-        for boolean in status:
-            if boolean is True:
-                ret.append(Success("Level {0} Citation Mapping for document {1} is working".format(i, textName)))
+        for b in status:
+            if b is True:
+                ret.append(Success("Level {0} Citation Mapping for document {1} is working".format(i + 1, textName)))
             else:
-                ret.append(Error("Level {0} Citation Mapping for document {1} is failing".format(i, textName)))
+                ret.append(Error("Level {0} Citation Mapping for document {1} is failing".format(i + 1, textName)))
+            i += 1
 
         ret = ret + messages
 
@@ -122,7 +122,7 @@ class Separator(ConsoleObject):
 class Success(ConsoleObject):
     """ A Warning String """
     def __init__(self, string):
-        super(Warning, self).__init__(string=string)
+        super(Success, self).__init__(string=string)
 
     def __str__(self):
         return "{0}{1}{2}".format(color.GREEN, self.string, color.END)
@@ -147,7 +147,7 @@ class Error(ConsoleObject):
 
 
 def is_msg(cmd):
-    return isinstance(cmd, (Parameter, Helper, Request, Separator, Warning))
+    return isinstance(cmd, (Parameter, Helper, Request, Separator, Warning, Success, Error))
 
 
 def run(cmds, host_fn):

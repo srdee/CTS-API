@@ -17,6 +17,7 @@ from cts.db import Credential
 from cts import shell
 from cts.resources import Corpus
 
+
 # globals
 env.project_name = 'cts-api'
 env.prod = False
@@ -37,11 +38,38 @@ def _get_config():
         raise ValueError("No config file available")
 
 
-def _rewriting_rules(dic):
+def _rewriting_path(string, modulo=""):
+    if isinstance(string, (str, unicode)):
+        return string.replace("#", env.build_dir + modulo)
+    elif isinstance(string, (dict)):
+        return _rewriting_dic(string, modulo=modulo)
+    elif isinstance(e, (list)):
+        return _rewriting_list(elements, modulo=modulo)
+    return string
+
+
+def _rewriting_list(elements, modulo=""):
+    r = []
+    for e in elements:
+        if isinstance(e, (str, unicode)):
+            r.append(_rewriting_path(r, modulo=modulo))
+        elif isinstance(e, (list)):
+            r.append(_rewriting_list(elements, modulo=modulo))
+        elif isinstance(e, (dict)):
+            r.append(_rewriting_dic(e, modulo=modulo))
+    return r
+
+
+def _rewriting_dic(dic, modulo=""):
     """ Reformat rewriting_rules, replacing # with env.build_dir """
     ret = {}
     for key in dic:
-        ret[key] = dic[key].replace("#", env.build_dir)
+        if isinstance(dic[key], (str, unicode)):
+            ret[key] = _rewriting_path(dic[key], modulo=modulo)
+        elif isinstance(dic[key], (dict)):
+            ret[key] = _rewriting_dic(dic[key], modulo=modulo)
+        elif isinstance(dic[key], (list)):
+            ret[key] = _rewriting_lists(dic[key], modulo=modulo)
     return ret
 
 
@@ -60,8 +88,20 @@ def _fill_config():
     )
 
     env.corpora = [
-        Corpus(method=r["method"], path=r["path"], resources=r["resources"], target=env.build_dir + "/data") for r in env.config["repositories"]
+        Corpus(
+            method=r["method"],
+            path=r["path"],
+            resources=_rewriting_list(r["resources"], modulo="data"),
+            target=env.build_dir + "/data",
+            retrieve_init=True
+        ) for r in env.config["repositories"]
     ]
+
+
+def _init():
+    _get_config()
+    _get_build_dir()
+    _fill_config()
 
 
 def _check_git_version():
@@ -95,6 +135,7 @@ def db_start():
 def deploy():
     """ Build a clean local version and deploy. """
     #_check_git_version()
+    _init()
     print("Downloading DB software")
     env.db.retrieve()
     for corpus in env.corpora:
@@ -116,8 +157,12 @@ def test():
 
 def test_cts():
     """ Test the CTS-Compliancy of our data """
+    _init()
+    results = []
 
+    for corpus in env.corpora:
+        for resource in corpus.resources:
+            results = results + shell.documentTestResults(resource.inventory.testTextsCitation())
 
-_get_config()
-_get_build_dir()
-_fill_config()
+    shell.run(results, local)
+    clean()

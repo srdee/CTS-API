@@ -4,6 +4,7 @@
 import xml.etree.ElementTree as ElementTree
 from codecs import *
 from ..shell import Error, Warning
+import os
 
 
 def replace_all(haystack, needles):
@@ -149,6 +150,8 @@ class Document(object):
 
         self.db = self.xml.get("docname")
         self.path = self._getFilePath()
+        self.filename = os.path.basename(self.path)
+
         self.validate = self.xml.find("{http://chs.harvard.edu/xmlns/cts3/ti}validate").get("schema")
 
         self.namespaces = self._retrieveNamespace()
