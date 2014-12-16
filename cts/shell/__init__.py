@@ -14,13 +14,21 @@ def documentTestResults(results):
     for result in results:
         textName, raw_results = result
         status, messages = raw_results
+        textName = textName
         i = 0
         for b in status:
             if b is True:
-                ret.append(Success("Level {0} Citation Mapping for document {1} is working".format(i + 1, textName)))
+                messages.append(Success("Level {0} Citation Mapping for document {1} is working".format(i + 1, textName)))
             else:
-                ret.append(Error("Level {0} Citation Mapping for document {1} is failing".format(i + 1, textName)))
+                messages.append(Error("Level {0} Citation Mapping for document {1} is failing".format(i + 1, textName)))
             i += 1
+
+        not_errors = [msg for msg in messages if not isinstance(msg, (Warning, Error))]
+
+        errors = [NumberedError(messages.index(error) + 1, error.string) for error in messages if isinstance(error, (Error, Warning))]
+        messages = not_errors
+        if len(errors) > 0:
+            messages = [Warning("Document {0} encountered following errors".format(textName))] + not_errors + errors
 
         ret = ret + messages
 
@@ -146,8 +154,18 @@ class Error(ConsoleObject):
         return "{3}{0}{1}{2}".format(color.RED, self.string, color.END, color.BOLD)
 
 
+class NumberedError(ConsoleObject):
+    """ An NumberedError String """
+    def __init__(self, number, string):
+        super(NumberedError, self).__init__(string=string)
+        self.number = number
+
+    def __str__(self):
+        return "{3}{0}Error number {4}{2}: {1}".format(color.RED, self.string, color.END, color.BOLD, self.number)
+
+
 def is_msg(cmd):
-    return isinstance(cmd, (Parameter, Helper, Request, Separator, Warning, Success, Error))
+    return isinstance(cmd, (Parameter, Helper, Request, Separator, Warning, Success, Error, NumberedError))
 
 
 def run(cmds, host_fn, input_required=True):
