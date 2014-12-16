@@ -90,17 +90,17 @@ class Citation(object):
 
         return xpath
 
-    def _testNamespace(self, name, string, original_string, failure_condition="equal"):
+    def _testNamespace(self, name, string, original_string, level=1, failure_condition="equal"):
         """ Test string and return an error for attributes called name
         """
         match = len(shortcut_namespace.findall(string))
         if failure_condition == "equal" and match == 0:
-            return [Error("{0}'s attribute for Citation has no namespaces shortcuts like 'tei:' ({1})")]
+            return [Error("{0}'s attribute for Citation Level {2} has no namespaces shortcuts like 'tei:' ({1})".format(name, original_string, level))]
         elif failure_condition == "greater" and match > 0:
-            return [Error("{0}'s attribute for Citation has namespaces shortcuts with no bindings ({1})".format(name, original_string))]
+            return [Error("{0}'s attribute for Citation Level {2} has namespaces shortcuts with no bindings ({1})".format(name, original_string, level))]
         return []
 
-    def testNamespace(self):
+    def testNamespace(self, level=1):
         """ Test scope as a string and see if there are issues
 
         :returns: List of Errors
@@ -108,14 +108,13 @@ class Citation(object):
         """
         errors = []
 
-        errors = errors + self._testNamespace("scope", self.scope, self.scope)
-        errors = errors + self._testNamespace("scope", self.full_xpath(string=self.scope), self.scope, failure_condition="greater")
-        errors = errors + self._testNamespace("xpath", self.xpath, self.xpath)
-        errors = errors + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, failure_condition="greater")
-
+        errors = errors + self._testNamespace("scope", self.scope, self.scope, level=level)
+        errors = errors + self._testNamespace("scope", self.full_xpath(string=self.scope), self.scope, level=level, failure_condition="greater")
+        errors = errors + self._testNamespace("xpath", self.xpath, self.xpath, level=level)
+        errors = errors + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, level=level, failure_condition="greater")
         return errors
 
-    def test(self, target):
+    def test(self, target, level=1):
         """ Test the citation attributes against an open file
 
         :param target: path to the file to be opened
@@ -150,9 +149,9 @@ class Citation(object):
                 status.append(True)
             else:
                 status.append(False)
-
+                warnings = self.testNamespace(level=level)
             if self.children:
-                s, w = self.children.test(target=target)
+                s, w = self.children.test(target=target, level=level+1)
                 status, warnings = status + s, warnings + w
 
         if len(status) == 0:
@@ -237,9 +236,6 @@ class Document(object):
         :rtype: tuple(boolean, list)
         """
         status, warnings = self.citation.test(self.path)
-        if len(warnings) > 0 or status is False:
-            if status is False:
-                warnings = warnings + self.citation.testNamespace()
         return status, warnings
 
 
