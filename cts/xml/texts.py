@@ -5,6 +5,9 @@ import xml.etree.ElementTree as ElementTree
 from codecs import *
 from ..shell import Error, Warning
 import os
+import re
+
+shortcut_namespace = re.compile("([a-zA-Z0-9]+\:)")
 
 
 def replace_all(haystack, needles):
@@ -65,15 +68,20 @@ class Citation(object):
             )
         return None
 
-    def full_xpath(self, removeRoot=False):
+    def full_xpath(self, removeRoot=False, string=None):
         """ Returns the xpath corresponding to this citation
 
         :param removeRoot: Indicates wether we should remove the root from the xquery
         :type removeRoot: boolean
+        :param string: A string to overrided default self.scope + self.xpath
+        :type string: str or unicode
         :returns: XPath String
         :rtype: str or unicode
         """
-        xpath = self.scope + self.xpath
+        if string is not None:
+            xpath = string
+        else:
+            xpath = self.scope + self.xpath
         xpath = xpath.replace("@n='?'", "@n")
 
         if removeRoot is True:
@@ -81,6 +89,31 @@ class Citation(object):
         xpath = replace_all(xpath, self.namespaces)
 
         return xpath
+
+    def _testNamespace(self, name, string, original_string, failure_condition="equal"):
+        """ Test string and return an error for attributes called name
+        """
+        match = len(shortcut_namespace.findall(string))
+        if failure_condition == "equal" and match == 0:
+            return [Error("{0}'s attribute for Citation has no namespaces shortcuts like 'tei:' ({1})")]
+        elif failure_condition == "greater" and match > 0:
+            return [Error("{0}'s attribute for Citation has namespaces shortcuts with no bindings ({1})".format(name, original_string))]
+        return []
+
+    def testNamespace(self):
+        """ Test scope as a string and see if there are issues
+
+        :returns: List of Errors
+        :rtype: list(Error)
+        """
+        errors = []
+
+        errors = errors + self._testNamespace("scope", self.scope, self.scope)
+        errors = errors + self._testNamespace("scope", self.full_xpath(string=self.scope), self.scope, failure_condition="greater")
+        errors = errors + self._testNamespace("xpath", self.xpath, self.xpath)
+        errors = errors + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, failure_condition="greater")
+
+        return errors
 
     def test(self, target):
         """ Test the citation attributes against an open file
@@ -205,7 +238,8 @@ class Document(object):
         """
         status, warnings = self.citation.test(self.path)
         if len(warnings) > 0 or status is False:
-            warnings = [Warning("Document {0} encountered following errors".format(self.path))] + warnings
+            if status is False:
+                warnings = warnings + self.citation.testNamespace()
         return status, warnings
 
 

@@ -9,6 +9,7 @@ from __future__ import with_statement
 import os
 import json
 import shutil
+from distutils.util import strtobool
 
 from fabric.api import *
 
@@ -155,14 +156,24 @@ def test():
     env.hosts = ['cts-test']
 
 
-def test_cts():
-    """ Test the CTS-Compliancy of our data """
+def test_cts(nosuccess=False):
+    """ Test the CTS-Compliancy of our data.
+
+    :param arg1: Boolean indicating if we should print Success
+    """
+
+    if nosuccess is not False:
+        nosuccess = bool(strtobool(str(nosuccess)))
+
     _init()
     results = []
 
     for corpus in env.corpora:
         for resource in corpus.resources:
             results = results + shell.documentTestResults(resource.inventory.testTextsCitation())
+
+    if nosuccess is True:
+        results = [result for result in results if isinstance(result, (shell.Success)) is False]
 
     shell.run(results, local, input_required=False)
     clean()
