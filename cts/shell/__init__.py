@@ -2,10 +2,36 @@
 # -*- coding: utf-8 -*-
 
 
+def documentTestResults(results):
+    """ Print test results
+
+    :param results: A list of tests results associated in a tuple with a Text.id
+    :type results: list(tuple(str, tuple(list(boolean), list(ConsoleObject))))
+    :returns: List of ConsoleObject
+    :rtype: list(ConsoleObject)
+    """
+    ret = []
+    for result in results:
+        textName, raw_results = result
+        status, messages = raw_results
+
+        i = 0
+        for boolean in status:
+            if boolean is True:
+                ret.append(Success("Level {0} Citation Mapping for document {1} is working".format(i, textName)))
+            else:
+                ret.append(Error("Level {0} Citation Mapping for document {1} is failing".format(i, textName)))
+
+        ret = ret + messages
+
+    return ret
+
+
 class color:
     """ A class with styles bytes for print() function """
     PURPLE = '\033[95m'
     CYAN = '\033[96m'
+    ORANGE = '\33[43m'
     DARKCYAN = '\033[36m'
     BLUE = '\033[94m'
     GREEN = '\033[92m'
@@ -93,10 +119,28 @@ class Separator(ConsoleObject):
         super(Separator, self).__init__(string="#############")
 
 
+class Success(ConsoleObject):
+    """ A Warning String """
+    def __init__(self, string):
+        super(Warning, self).__init__(string=string)
+
+    def __str__(self):
+        return "{0}{1}{2}".format(color.GREEN, self.string, color.END)
+
+
 class Warning(ConsoleObject):
     """ A Warning String """
     def __init__(self, string):
         super(Warning, self).__init__(string=string)
+
+    def __str__(self):
+        return "{0}{1}{2}".format(color.ORANGE, self.string, color.END)
+
+
+class Error(ConsoleObject):
+    """ An Error String """
+    def __init__(self, string):
+        super(Error, self).__init__(string=string)
 
     def __str__(self):
         return "{3}{0}{1}{2}".format(color.RED, self.string, color.END, color.BOLD)

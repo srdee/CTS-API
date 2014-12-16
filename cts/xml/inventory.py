@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import xml.etree.cElementTree as ElementTree
-from errors import *
-from texts import *
+import xml.etree.ElementTree as ElementTree
+from .errors import *
+from .texts import *
 
 
 class Work(object):
@@ -35,9 +35,8 @@ class Work(object):
         self.translations = []
 
         self._retrieveEditions()
+        self._retrieveTranslations()
 
-        for edition in self.editions:
-            print (edition.getTitle())
     def _retrieveTitles(self):
         """ Retrieve titles from the xml """
         for title in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}title"):
@@ -55,7 +54,11 @@ class Work(object):
         :returns: Title of the Work
         :rtype: str or unicode
         """
-        return self.titles.get(lang, self.titles.keys())
+        try:
+            defaulttitle = list(self.titles.keys())[0]
+            return self.titles.get(lang, self.titles[defaulttitle])
+        except:
+            raise NoTitleException()
 
     def _retrieveEditions(self):
         """ Retrieve and create editions based on self.xml """
@@ -64,7 +67,7 @@ class Work(object):
 
     def _retrieveTranslations(self):
         for translation in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}translation"):
-            self.translations.append(Translation(edition, rewriting_rules=self.rewriting_rules, strict=False))
+            self.translations.append(Translation(translation, rewriting_rules=self.rewriting_rules, strict=False))
 
 
 class TextGroup(object):
@@ -111,7 +114,7 @@ class TextGroup(object):
 
     def _retrieveWorks(self):
         for work in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}work"):
-            self.works.append(Work(work))
+            self.works.append(Work(work, rewriting_rules=self.rewriting_rules))
 
 
 class Inventory(object):
@@ -144,7 +147,37 @@ class Inventory(object):
 
     def _retrieveTextGroup(self):
         for group in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}textgroup"):
-            self.textGroups.append(TextGroup(xml=group))
+            self.textGroups.append(TextGroup(xml=group, rewriting_rules=self.rewriting_rules))
         return self.textGroups
 
-i = Inventory(path="/home/thibault/dev/CTS-API/build/canonical/CTS_XML_TextInventory/allcts.xml")
+    def getTexts(self, instanceOf=[Edition, Translation]):
+        """ Return all documents in subsections of the Inventory instance
+
+        :param instanceOf: A list of object type including Document object to be taking care of
+        :type instanceOf: list(Text.__class__)
+        :returns: A list of Document() object found in the Inventory
+        :rtype: list(Text)
+        """
+        docs = []
+        for textgroup in self.textGroups:
+            for work in textgroup.works:
+                if Edition in instanceOf:
+                    for edition in work.editions:
+                        docs.append(edition)
+
+                if Translation in instanceOf:
+                    for translation in work.translations:
+                        docs.append(translation)
+        return docs
+
+    def testTextsCitation(self):
+        """ Test all documents available in the Inventory
+
+        :returns: A list of tests results associated in a tuple with a Text.id
+        :rtype: list(tuple(str, tuple(list(boolean), list(ConsoleObject))))
+        """
+        docs = self.getDocuments()
+        results = []
+        for doc in docs:
+            results.append((doc.id, doc.document.testCitation()))
+        return results
