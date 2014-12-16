@@ -164,5 +164,5 @@ def test_cts():
         for resource in corpus.resources:
             results = results + shell.documentTestResults(resource.inventory.testTextsCitation())
 
-    shell.run(results, local)
+    shell.run(results, local, input_required=False)
     clean()

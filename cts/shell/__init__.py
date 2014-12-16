@@ -150,13 +150,15 @@ def is_msg(cmd):
     return isinstance(cmd, (Parameter, Helper, Request, Separator, Warning, Success, Error))
 
 
-def run(cmds, host_fn):
+def run(cmds, host_fn, input_required=True):
     """ Given a variable cmds, decides whether to prompt user with a command to run or run it using given host_fn function
 
     :param cmds: The command to print. If a list, we run the command using host_fn()
     :type cmds: unicode or str or list
     :param host_fn: Function to use to run cmds (Default : local)
     :type host_fn: function
+    :param input_required: Indicates if we should ask user to confirm he has read everything
+    :type input_required: boolean
 
     """
     if is_msg(cmds):
@@ -175,5 +177,5 @@ def run(cmds, host_fn):
                 last_cmd = cmd
             run(cmd, host_fn)
 
-        if is_msg(last_cmd):
+        if is_msg(last_cmd) and input_required is True:
             raw_input("Press enter to continue")
