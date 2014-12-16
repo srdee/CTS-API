@@ -16,8 +16,11 @@
 			"resources" : [
 				{
 					"name" : "canonical_example",
-					"texts" : "./canonical/CTS_XML_TEI/perseus", 
-					"inventory" : "./canonical/CTS_XML_TextInventory/allcts.xml" 
+					"texts" : "#/canonical/CTS_XML_TEI/perseus", 
+					"inventory" : "#/canonical/CTS_XML_TextInventory/allcts.xml",
+					"rewriting_rules" : {
+						"/db/repository/" : "#/canonical/CTS_XML_TEI/perseus/"
+					}
 				}
 			]
 

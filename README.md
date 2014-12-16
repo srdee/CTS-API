@@ -32,14 +32,23 @@ This CTS-API deployement uses a json file for its configuration.
 			"resources" : [
 				{
 					"name" : "canonical_example" //Name of the collection, optional
-					"texts" : "./canonical/CTS_XML_TEI/perseus",  // The folder in which fab will find the texts
-					"inventory" : "./canonical/CTS_XML_TextInventory/allcts.xml" // The file which holds CTS informations
+					"texts" : "#/canonical/CTS_XML_TEI/perseus",  // The folder in which fab will find the texts
+					"inventory" : "#/canonical/CTS_XML_TextInventory/allcts.xml" // The file which holds CTS informations
+					"rewriting_rules" : { // Pairs of key, value where key has to be overriden by value in Inventory pointer
+						"/db/repository/" : "#/canonical/CTS_XML_TEI/perseus/"
+					}
 				}
 			]
 
 		]
 }
 ```
+
+**Important note** : in `["repositories"]["resources"]`, you can see that we use the joker `#`. This joker is replaced automatically by the build directory's path. Not using the joker would make opening files not working.
+
+##Fab commands
+- `fab test_cts` : test files against data given in inventory
+- `fab clean` : clean the build dir
 
 ## What the deployement steps should include
 The fabfile should do the following things :
