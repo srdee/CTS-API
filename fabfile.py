@@ -133,29 +133,12 @@ def db_start():
     shell.run(env.db.start(), local)
 
 
-def deploy():
-    """ Build a clean local version and deploy. """
-    #_check_git_version()
-    _init()
-    print("Downloading DB software")
-    env.db.retrieve()
-    for corpus in env.corpora:
-        corpus.retrieve()
-    db_setup()
-    db_start()
-    db_stop()
-
-
-def clean():
-    """ Clean up data """
-    shutil.rmtree(_get_build_dir())
-
-
 def test():
     """ Use the remote testing server """
     env.hosts = ['cts-test']
 
 
+@task
 def test_cts(nosuccess=False):
     """ Test the CTS-Compliancy of our data.
 
@@ -177,3 +160,23 @@ def test_cts(nosuccess=False):
 
     shell.run(results, local, input_required=False)
     clean()
+
+
+@task
+def deploy():
+    """ Build a clean local version and deploy. """
+    #_check_git_version()
+    _init()
+    print("Downloading DB software")
+    env.db.retrieve()
+    for corpus in env.corpora:
+        corpus.retrieve()
+    db_setup()
+    db_start()
+    db_stop()
+
+
+@task
+def clean():
+    """ Clean up build directory """
+    shutil.rmtree(_get_build_dir())

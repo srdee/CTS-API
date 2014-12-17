@@ -11,26 +11,41 @@ def documentTestResults(results):
     :rtype: list(ConsoleObject)
     """
     ret = []
+
+    successes = 0
+    failures = 0
+
     for result in results:
         textName, raw_results = result
         status, messages = raw_results
         textName = textName
-        i = 0
-        for b in status:
-            if b is True:
-                messages.append(Success("Level {0} Citation Mapping for document {1} is working".format(i + 1, textName)))
-            else:
-                messages.append(Error("Level {0} Citation Mapping for document {1} is failing".format(i + 1, textName)))
-            i += 1
 
-        not_errors = [msg for msg in messages if not isinstance(msg, (Warning, Error))]
+        if len(messages) == 0 and len([m for m in status if m is False]) == 0:
+            messages.append(Success("Document {0} has passed all the tests".format(textName)))
+            successes += 1
+        else:
+            failures += 1
+            i = 0
+            for b in status:
+                if b is True:
+                    messages.append(Success("Level {0} Citation Mapping for document {1} is working".format(i + 1, textName)))
+                else:
+                    messages.append(Error("Level {0} Citation Mapping for document {1} is failing".format(i + 1, textName)))
+                i += 1
 
-        errors = [NumberedError(messages.index(error) + 1, error.string) for error in messages if isinstance(error, (Error, Warning))]
-        messages = not_errors
-        if len(errors) > 0:
-            messages = [Warning("Document {0} encountered following errors".format(textName))] + not_errors + errors
+            not_errors = [msg for msg in messages if not isinstance(msg, (Warning, Error))]
+
+            errors = [NumberedError(messages.index(error) + 1, error.string) for error in messages if isinstance(error, (Error, Warning))]
+            messages = not_errors
+            if len(errors) > 0:
+                messages = [Warning("Document {0} encountered following errors".format(textName))] + not_errors + errors
 
         ret = ret + messages
+
+    if failures == 0:
+        ret.append(Success("All {0} files have passed tests successfuly").format(successes))
+    else:
+        ret.append(Error("{0}/{1} files have passed tests successfuly".format(successes, successes + failures)))
 
     return ret
 

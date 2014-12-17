@@ -3,7 +3,7 @@
 
 import xml.etree.ElementTree as ElementTree
 from codecs import *
-from ..shell import Error, Warning
+from ..shell import Error
 import os
 import re
 
@@ -100,25 +100,96 @@ class Citation(object):
             return [Error("{0}'s attribute for Citation Level {2} has namespaces shortcuts with no bindings ({1})".format(name, original_string, level))]
         return []
 
-    def testNamespace(self, level=1):
+    def testReplication(self, xml=None, level=1, warnings=[]):
+        """ Test replication of CTS citationMapping into the file
+
+        :param level: Level (Hierarchy wise) of this citation)
+        :type level: int
+        :param xml: XML parsed
+        :type xml: ElementTree.Element
+        :param warnings: List of warnings
+        :type warnings: List(ShellObject)
+        :returns: List of warnings
+        :rtype: List(ShellObject)
+        """
+        try:
+            refState = xml.findall(".//{http://www.tei-c.org/ns/1.0}refsDecl/{http://www.tei-c.org/ns/1.0}refState")
+            lenRefState = len(refState)
+
+            if lenRefState >= level:
+                refState = refState[level - 1]
+
+                if refState.get("unit") != self.label:
+                    warnings.append(
+                        Error("Citation Mapping ({0}) has label {1}, while refState[{0}] has unit {2}".format(
+                            level, self.label, refState.get("unit")
+                        ))
+                    )
+            elif lenRefState > 0:
+                warnings.append(  # There is not enough items
+                    Error("Depth of refState too small (CitationMapping {0} / refState {1})".format(level, lenRefState))
+                )
+            else:
+                # Here we need to try for other tag ..
+                if len(xml.findall(".//{http://www.tei-c.org/ns/1.0}refsDecl/{http://www.tei-c.org/ns/1.0}state")) > 0:
+                    warnings.append(Error("<state> tags used instead of <refState> tags"))
+                else:
+                    already_there = [
+                        warning for warning in warnings
+                        if warning.__str__() == "No <refState> nor replication of <CitationMapping> found in this file"
+                    ]
+                    if len(already_there) == 0:
+                        warnings.append(Error("No <refState> nor replication of <CitationMapping> found in this file"))
+        except:
+            warnings.append(Error("Unable to run xpath for <refState>"))
+
+        return warnings
+
+    def testNamespaceURI(self, xml=None, warnings=[]):
+        """ Test if there is a good namespace URI
+        """
+
+        error_msg = ["No namespace uri found in this document", "Wrong namespace URI found"]
+        error_found = [
+            warning for warning in warnings
+            if warning.__str__() in error_msg
+        ]
+        if len(error_found) == 0:
+            tag = xml.getroot().tag
+            xmlns = tag[0:].split("}")[0]+"}"
+            if "{" not in tag:
+                warnings.append(Error(error_msg[0]))
+            elif xmlns != self.namespaces.values()[0]:
+                warnings.append(Error(error_msg[1]))
+            else:
+                pass
+                #warnings.append(Error("{0} != {1} ( {2} )".format(xmlns, " ".join(self.namespaces.values()), tag)))
+        return warnings
+
+    def testNamespace(self, level=1, warnings=[]):
         """ Test scope as a string and see if there are issues
 
         :returns: List of Errors
         :rtype: list(Error)
         """
-        errors = []
 
-        errors = errors + self._testNamespace("scope", self.scope, self.scope, level=level)
-        errors = errors + self._testNamespace("scope", self.full_xpath(string=self.scope), self.scope, level=level, failure_condition="greater")
-        errors = errors + self._testNamespace("xpath", self.xpath, self.xpath, level=level)
-        errors = errors + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, level=level, failure_condition="greater")
-        return errors
+        warnings = warnings + self._testNamespace("scope", self.scope, self.scope, level=level)
+        warnings = warnings + self._testNamespace("scope", self.full_xpath(string=self.scope), self.scope, level=level, failure_condition="greater")
+        warnings = warnings + self._testNamespace("xpath", self.xpath, self.xpath, level=level)
+        warnings = warnings + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, level=level, failure_condition="greater")
+        return warnings
 
-    def test(self, target, level=1):
+    def test(self, target=None, level=1, xml=None, ignore_replication=False):
         """ Test the citation attributes against an open file
 
         :param target: path to the file to be opened
         :type target: str or unicode
+        :param level: Level (Hierarchy wise) of this citation)
+        :type level: int
+        :param xml: XML parsed
+        :type xml: ElementTree.Element
+        :param ignore_replication: Ignore testReplication test
+        :type ignore_replication: boolean
         :returns: Indicator of success and list of warnings
         :rtype: tuple(list(boolean), list(string))
         """
@@ -138,7 +209,10 @@ class Citation(object):
                     raise ValueError("The target parameter value is neither a file, a str nor a unicode")
 
         if xml:
+            #First we test namespace
+            warnings = self.testNamespaceURI(xml=xml, warnings=warnings)
             xpath = self.full_xpath(removeRoot=True)
+
             try:
                 found = xml.findall(xpath)
             except:
@@ -149,9 +223,13 @@ class Citation(object):
                 status.append(True)
             else:
                 status.append(False)
-                warnings = self.testNamespace(level=level)
+                warnings = self.testNamespace(level=level, warnings=warnings)
+
+            if ignore_replication is False:
+                warnings = self.testReplication(xml=xml, level=level, warnings=warnings)
+
             if self.children:
-                s, w = self.children.test(target=target, level=level+1)
+                s, w = self.children.test(level=level+1, xml=xml)
                 status, warnings = status + s, warnings + w
 
         if len(status) == 0:
@@ -229,13 +307,15 @@ class Document(object):
                 print(Error("The file {0} does not exist or can't be opened".format(self.path)))
         return None
 
-    def testCitation(self):
+    def testCitation(self, ignore_replication=False):
         """ Test the citation schema against the opened file
 
+        :param ignore_replication: Ignore testReplication test
+        :type ignore_replication: boolean
         :returns: Indicator of success and list of warnings
         :rtype: tuple(boolean, list)
         """
-        status, warnings = self.citation.test(self.path)
+        status, warnings = self.citation.test(self.path, ignore_replication=False)
         return status, warnings
 
 

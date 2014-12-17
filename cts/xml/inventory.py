@@ -168,14 +168,16 @@ class Inventory(object):
                         docs.append(translation)
         return docs
 
-    def testTextsCitation(self):
+    def testTextsCitation(self, ignore_replication=False):
         """ Test all documents available in the Inventory
 
+        :param ignore_replication: Ignore testReplication test
+        :type ignore_replication: boolean
         :returns: A list of tests results associated in a tuple with a Text.id
         :rtype: list(tuple(str, tuple(list(boolean), list(ConsoleObject))))
         """
         docs = self.getTexts()
         results = []
         for doc in docs:
-            results.append((doc.document.filename, doc.document.testCitation()))
+            results.append((doc.document.filename, doc.document.testCitation(ignore_replication=False)))
         return results
