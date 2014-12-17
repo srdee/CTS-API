@@ -233,7 +233,6 @@ class Citation(object):
                 status.append(True)
             else:
                 status.append(False)
-                warnings.append(Error("XPATH for this part {0} ".format(self.xpath)))
                 warnings = self.testNamespace(level=level, warnings=warnings)
 
             if ignore_replication is False:
@@ -244,9 +243,6 @@ class Citation(object):
 
         if len(status) == 0:
             status = [False]
-            warnings.append(Error("No xml ? {0}".format(xml)))
-
-        #print("{0} {1} {2} {3} {4} {5} {6}".format(target, level, xml, warnings, status, ignore_replication, self.full_xpath()))
 
         return status, warnings
 
