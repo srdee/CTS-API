@@ -181,7 +181,7 @@ class Citation(object):
         warnings = warnings + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, level=level, failure_condition="greater")
         return warnings
 
-    def test(self, target=None, level=1, xml=None, ignore_replication=False):
+    def test(self, target=None, level=1, xml=None, warnings=None, status=None, ignore_replication=False):
         """ Test the citation attributes against an open file
 
         :param target: path to the file to be opened
@@ -190,52 +190,61 @@ class Citation(object):
         :type level: int
         :param xml: XML parsed
         :type xml: ElementTree.Element
+        :param warnings: List of errors
+        :type warnings: list(ShellObject)
+        :param status: List of boolean indicating success on <citation>
+        :type status: list(boolean)
         :param ignore_replication: Ignore testReplication test
         :type ignore_replication: boolean
         :returns: Indicator of success and list of warnings
-        :rtype: tuple(list(boolean), list(string))
+        :rtype: tuple(list(boolean), list(ShellObject))
         """
-        status = []
-        warnings = []
-        xml = None
+        if warnings is None:
+            warnings = []
+        if status is None:
+            status = []
 
-        if target:
+        if target is not None:
             try:
                 xml = ElementTree.parse(target)
-            except:
+            except Exception as E:
                 if self.strict is False:
                     status.append(False)
-                    warnings.append(Error("Impossible to parse given element"))
+                    warnings.append(Error("Impossible to parse given element (Reason : {0})".format(E.message)))
                     return status, warnings
                 else:
                     raise ValueError("The target parameter value is neither a file, a str nor a unicode")
 
-        if xml:
+        if xml is not None:
             #First we test namespace
             warnings = self.testNamespaceURI(xml=xml, warnings=warnings)
             xpath = self.full_xpath(removeRoot=True)
 
             try:
                 found = xml.findall(xpath)
-            except:
+            except Exception as E:
                 found = []
-                warnings.append(Error("Unable to run xpath {0}".format(xpath)))
+                warnings.append(Error("Unable to run xpath {0} (Reason : {0} )".format(xpath, E.message)))
 
             if len(found) > 0:
                 status.append(True)
             else:
                 status.append(False)
+                warnings.append(Error("XPATH for this part {0} ".format(self.xpath)))
                 warnings = self.testNamespace(level=level, warnings=warnings)
 
             if ignore_replication is False:
                 warnings = self.testReplication(xml=xml, level=level, warnings=warnings)
 
-            if self.children:
-                s, w = self.children.test(level=level+1, xml=xml, ignore_replication=ignore_replication)
-                status, warnings = status + s, warnings + w
+            if self.children is not None:
+                status, warnings = self.children.test(level=level+1, xml=xml, warnings=warnings, status=status, ignore_replication=ignore_replication)
 
         if len(status) == 0:
             status = [False]
+            warnings.append(Error("No xml ? {0}".format(xml)))
+
+        #print("{0} {1} {2} {3} {4} {5} {6}".format(target, level, xml, warnings, status, ignore_replication, self.full_xpath()))
+
         return status, warnings
 
 
