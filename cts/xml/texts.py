@@ -7,7 +7,7 @@ from ..shell import Error
 import os
 import re
 
-shortcut_namespace = re.compile("([a-zA-Z0-9]+\:)")
+shortcut_namespace = re.compile("([a-zA-Z0-9]+\:(?!\/))")
 
 
 def replace_all(haystack, needles):
@@ -82,7 +82,9 @@ class Citation(object):
             xpath = string
         else:
             xpath = self.scope + self.xpath
+
         xpath = xpath.replace("@n='?'", "@n")
+        xpath = xpath.replace(" and ", "][")
 
         if removeRoot is True:
             xpath = "/".join(["."] + xpath.split("/")[2:])
@@ -174,7 +176,7 @@ class Citation(object):
         """
 
         warnings = warnings + self._testNamespace("scope", self.scope, self.scope, level=level)
-        warnings = warnings + self._testNamespace("scope", self.full_xpath(string=self.scope), self.scope, level=level, failure_condition="greater")
+        warnings = warnings + self._testNamespace("scope", self.full_xpath(string=self.scope), self.full_xpath(string=self.scope), level=level, failure_condition="greater")
         warnings = warnings + self._testNamespace("xpath", self.xpath, self.xpath, level=level)
         warnings = warnings + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, level=level, failure_condition="greater")
         return warnings
