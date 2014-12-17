@@ -139,24 +139,27 @@ def test():
 
 
 @task
-def test_cts(nosuccess=False, ignore_replication=False):
+def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
     """ Test the CTS-Compliancy of our data.
 
     :param nosuccess: Boolean indicating if we should print Success
-    :param nosuccess: Boolean indicating if we should test for replication of CitationMapping in Files
+    :param ignore_replication: Boolean indicating if we should test for replication of CitationMapping in Files
+    :param no_color: Boolean indicating if we should have non-styled string messages
     """
 
     if nosuccess is not False:
         nosuccess = bool(strtobool(str(nosuccess)))
     if ignore_replication is not False:
         ignore_replication = bool(strtobool(str(ignore_replication)))
+    if no_color is not False:
+        no_color = bool(strtobool(str(no_color)))
 
     _init()
     results = []
 
     for corpus in env.corpora:
         for resource in corpus.resources:
-            results = results + shell.documentTestResults(resource.inventory.testTextsCitation(ignore_replication=ignore_replication))
+            results = results + shell.documentTestResults(resource.inventory.testTextsCitation(ignore_replication=ignore_replication), no_color=no_color)
 
     if nosuccess is True:
         results = [result for result in results if isinstance(result, (shell.Success)) is False]
