@@ -179,5 +179,5 @@ class Inventory(object):
         docs = self.getTexts()
         results = []
         for doc in docs:
-            results.append((doc.document.filename, doc.document.testCitation(ignore_replication=False)))
+            results.append((doc.document.filename, doc.document.testCitation(ignore_replication=ignore_replication)))
         return results

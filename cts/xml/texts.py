@@ -229,7 +229,7 @@ class Citation(object):
                 warnings = self.testReplication(xml=xml, level=level, warnings=warnings)
 
             if self.children:
-                s, w = self.children.test(level=level+1, xml=xml)
+                s, w = self.children.test(level=level+1, xml=xml, ignore_replication=ignore_replication)
                 status, warnings = status + s, warnings + w
 
         if len(status) == 0:
@@ -315,7 +315,7 @@ class Document(object):
         :returns: Indicator of success and list of warnings
         :rtype: tuple(boolean, list)
         """
-        status, warnings = self.citation.test(self.path, ignore_replication=False)
+        status, warnings = self.citation.test(self.path, ignore_replication=ignore_replication)
         return status, warnings
 
 
