@@ -138,7 +138,7 @@ class Citation(object):
                 else:
                     already_there = [
                         warning for warning in warnings
-                        if warning.__str__() == "No <refState> nor replication of <CitationMapping> found in this file"
+                        if warning.string == "No <refState> nor replication of <CitationMapping> found in this file"
                     ]
                     if len(already_there) == 0:
                         warnings.append(Error("No <refState> nor replication of <CitationMapping> found in this file"))
@@ -147,15 +147,18 @@ class Citation(object):
 
         return warnings
 
-    def testNamespaceURI(self, xml=None, warnings=[]):
+    def testNamespaceURI(self, xml=None, warnings=None):
         """ Test if there is a good namespace URI
         """
+        if warnings is None:
+            warnings = []
 
         error_msg = ["No namespace uri found in this document", "Wrong namespace URI found"]
         error_found = [
             warning for warning in warnings
-            if warning.__str__() in error_msg
+            if warning.string in error_msg
         ]
+
         if len(error_found) == 0:
             tag = xml.getroot().tag
             xmlns = tag[0:].split("}")[0]+"}"
