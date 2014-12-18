@@ -100,17 +100,36 @@ def TestEditionDocumentCitation():
     assert results == [True, True, False], "Results for Translations document citation test should be successful except level 3"
 
 
-def TestNoNamespace():
+def TestNamespaceURI():
     c = cts.xml.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
         }
     )
-    c.testNamespaceURI(xml="""<?xml version="1.0" encoding="UTF-8"?>
+    warnings = c.testNamespaceURI(xml="""<?xml version="1.0" encoding="UTF-8"?>
 <?xml-model href="http://www.stoa.org/epidoc/schema/latest/tei-epidoc.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
         <TEI>
         <teiHeader></teiHeader>
         <text></text>
         </TEI>
     """)
+    assert "No namespace uri found in this document" in [warning.string for warning in warnings], "Absence of xml:ns should raise Error"
+
+    warnings = c.testNamespaceURI(xml="""<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://www.stoa.org/epidoc/schema/latest/tei-epidoc.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+        <TEI xmlns="http://google.fr">
+        <teiHeader></teiHeader>
+        <text></text>
+        </TEI>
+    """)
+    assert "Wrong namespace URI found" in [warning.string for warning in warnings], "Not in self.namespaces xml:ns should raise Error"
+
+    warnings = c.testNamespaceURI(xml="""<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://www.stoa.org/epidoc/schema/latest/tei-epidoc.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+        <TEI xmlns="http://www.tei-c.org/ns/1.0">
+        <teiHeader></teiHeader>
+        <text></text>
+        </TEI>
+    """)
+    assert len(warnings) == 0, "Good formated xmlns should not raise Error"
