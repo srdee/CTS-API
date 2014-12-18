@@ -16,11 +16,19 @@ def documentTestResults(results, no_color=False):
 
     successes = 0
     failures = 0
+    cts_success = 0
+    cts_failure = 0
+    parsing_errors = 0
 
     for result in results:
         textName, raw_results = result
         status, messages = raw_results
         textName = textName
+
+        if len([m for m in status if m is False]) == 0:
+            cts_success += 1
+        else:
+            cts_failure += 1
 
         if len(messages) == 0 and len([m for m in status if m is False]) == 0:
             messages.append(Success("Document {0} has passed all the tests".format(textName)))
@@ -39,15 +47,27 @@ def documentTestResults(results, no_color=False):
 
             errors = [NumberedError(messages.index(error) + 1, error.string) for error in messages if isinstance(error, (Error, Warning))]
             messages = not_errors
+            parsing_errors += len([1 for e in errors if "Impossible to parse given element" in e.string])
             if len(errors) > 0:
                 messages = [Warning("Document {0} encountered following errors".format(textName))] + not_errors + errors
 
         ret = ret + messages
 
+    ret.append(Separator())
     if failures == 0:
-        ret.append(Success("All {0} files have passed tests successfuly").format(successes))
+        ret.append(Success("Results : All {0} files have passed xml tests successfuly").format(successes))
     else:
-        ret.append(Error("{0}/{1} files have passed tests successfuly".format(successes, successes + failures)))
+        ret.append(Error("Results : {0}/{1} files have passed xml tests successfuly".format(successes, successes + failures)))
+
+    if cts_failure == 0:
+        ret.append(Success("Results : All {0} files have passed cts tests successfuly").format(cts_success))
+    else:
+        ret.append(Error("Results : {0}/{1} files have passed cts tests successfuly".format(cts_success, cts_success + cts_failure)))
+
+    if parsing_errors == 0:
+        ret.append(Success("Results : No Parsing Errors !"))
+    else:
+        ret.append(Error("Results : {0} files have had parsing errors".format(parsing_errors)))
 
     if no_color is True:
         ret2 = []
