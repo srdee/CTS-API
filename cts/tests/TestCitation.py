@@ -104,7 +104,7 @@ def TestChildrenRetriever():
     )
     assert c.children is None, "When there is no child, there should be no child"
     c = cts.xml.texts.Citation(
-        xml="""<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\">
+        xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\">
         <citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>
         </citation>
         """,
