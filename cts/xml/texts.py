@@ -93,7 +93,8 @@ class Citation(object):
         """ Test string and return an error for attributes called name
         """
         match = len(shortcut_namespace.findall(string))
-        if failure_condition == "equal" and match == 0:
+        expected = len([path for path in string.split("/") if len(path) > 0])
+        if failure_condition == "equal" and match != expected:
             return [Error("{0}'s attribute for Citation Level {2} has no namespaces shortcuts like 'tei:' ({1})".format(name, original_string, level))]
         elif failure_condition == "greater" and match > 0:
             return [Error("{0}'s attribute for Citation Level {2} has namespaces shortcuts with no bindings ({1})".format(name, original_string, level))]
