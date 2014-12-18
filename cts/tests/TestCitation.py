@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import cts.xml.texts
+from nose.tools import assert_is_instance
 
 
 def TestNamespaceURI():
@@ -92,3 +93,23 @@ def TestNamespaceWarnings():
     )
     errors = [e.string for e in c.testNamespace()]
     assert len(errors) == 0, "Correct xpath and scope should not raise error"
+
+
+def TestChildrenRetriever():
+    c = cts.xml.texts.Citation(
+        xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    assert c.children is None, "When there is no child, there should be no child"
+    c = cts.xml.texts.Citation(
+        xml="""<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\">
+        <citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>
+        </citation>
+        """,
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    assert_is_instance(c.children, cts.xml.texts.Citation)
