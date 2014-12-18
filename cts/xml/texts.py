@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree as ElementTree
 from codecs import *
 from ..shell import Error
+from .helpers import xmlParsing
 import os
 import re
 
@@ -38,10 +38,7 @@ class Citation(object):
         :type strict: boolean
         """
 
-        if isinstance(xml, ElementTree.Element):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         """label="Chapter" xpath="/tei:div[@n='?']" scope="/tei:TEI/tei:text/tei:body"""
 
@@ -96,7 +93,8 @@ class Citation(object):
         """ Test string and return an error for attributes called name
         """
         match = len(shortcut_namespace.findall(string))
-        if failure_condition == "equal" and match == 0:
+        expected = len([path for path in string.split("/") if len(path) > 0])
+        if failure_condition == "equal" and match != expected:
             return [Error("{0}'s attribute for Citation Level {2} has no namespaces shortcuts like 'tei:' ({1})".format(name, original_string, level))]
         elif failure_condition == "greater" and match > 0:
             return [Error("{0}'s attribute for Citation Level {2} has namespaces shortcuts with no bindings ({1})".format(name, original_string, level))]
@@ -115,6 +113,7 @@ class Citation(object):
         :rtype: List(ShellObject)
         """
         try:
+            xml = xmlParsing(xml)
             refState = xml.findall(".//{http://www.tei-c.org/ns/1.0}refsDecl/{http://www.tei-c.org/ns/1.0}refState")
             lenRefState = len(refState)
 
@@ -142,14 +141,15 @@ class Citation(object):
                     ]
                     if len(already_there) == 0:
                         warnings.append(Error("No <refState> nor replication of <CitationMapping> found in this file"))
-        except:
-            warnings.append(Error("Unable to run xpath for <refState>"))
+        except Exception as E:
+            warnings.append(Error("Unable to run xpath for <refState> (Reason : {0}".format(E.message)))
 
         return warnings
 
     def testNamespaceURI(self, xml=None, warnings=None):
         """ Test if there is a good namespace URI
         """
+        xml = xmlParsing(xml)  # For tests at least, we need to be able to call this function from oustide, serving string instead of xml.ElementTree
         if warnings is None:
             warnings = []
 
@@ -160,7 +160,7 @@ class Citation(object):
         ]
 
         if len(error_found) == 0:
-            tag = xml.getroot().tag
+            tag = xml.tag
             xmlns = tag[0:].split("}")[0]+"}"
             if "{" not in tag:
                 warnings.append(Error(error_msg[0]))
@@ -171,12 +171,14 @@ class Citation(object):
                 #warnings.append(Error("{0} != {1} ( {2} )".format(xmlns, " ".join(self.namespaces.values()), tag)))
         return warnings
 
-    def testNamespace(self, level=1, warnings=[]):
+    def testNamespace(self, level=1, warnings=None):
         """ Test scope as a string and see if there are issues
 
         :returns: List of Errors
         :rtype: list(Error)
         """
+        if warnings is None:
+            warnings = []
 
         warnings = warnings + self._testNamespace("scope", self.scope, self.scope, level=level)
         warnings = warnings + self._testNamespace("scope", self.full_xpath(string=self.scope), self.full_xpath(string=self.scope), level=level, failure_condition="greater")
@@ -209,7 +211,7 @@ class Citation(object):
 
         if target is not None:
             try:
-                xml = ElementTree.parse(target)
+                xml = xmlParsing(target)
             except Exception as E:
                 if self.strict is False:
                     status.append(False)
@@ -260,10 +262,7 @@ class Document(object):
         :type strict: boolean
         """
 
-        if isinstance(xml, ElementTree.Element):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         self.rewriting_rules = rewriting_rules
         self.strict = strict
@@ -342,10 +341,7 @@ class Text(object):
         :type strict: boolean
         """
 
-        if isinstance(xml, ElementTree.Element):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         self.rewriting_rules = rewriting_rules
         self.strict = strict
@@ -381,6 +377,16 @@ class Text(object):
             return self.titles.get(lang, self.titles[defaulttitle])
         except:
             raise NoTitleException()
+
+    def testCitation(self, ignore_replication=False):
+        """ Test the citation schema against the opened file
+
+        :param ignore_replication: Ignore testReplication test
+        :type ignore_replication: boolean
+        :returns: Indicator of success and list of warnings
+        :rtype: tuple(boolean, list)
+        """
+        self.document.testCitation(ignore_replication=ignore_replication)
 
 
 class Edition(Text):

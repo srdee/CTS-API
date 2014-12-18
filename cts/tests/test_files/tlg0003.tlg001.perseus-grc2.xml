@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://www.stoa.org/epidoc/schema/latest/tei-epidoc.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+
+<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader type="text">
+    
+    <encodingDesc>
+      <refsDecl>
+        <refState unit="book" delim="."/>
+        <refState unit="chapter" delim="."/>
+        <refState unit="section"/>
+      </refsDecl>
+    </encodingDesc>
+  </teiHeader>
+  
+  <text n="urn:cts:greekLit:tlg0003.tlg001.perseus-grc2" xml:lang="grc">
+    <interpGrp type="meter" xml:lang="en">
+      <interp xml:id="met-hexameter">hexameter</interp>
+      <interp xml:id="met-dact">dact</interp>
+    </interpGrp>
+    
+    <body>
+      <div type="edition">
+        <div n="1" type="textpart" subtype="book">
+          <div type="textpart" subtype="chapter" n="1">
+            <div type="textpart" subtype="section" error_making="1">
+              <p>
+                <milestone ed="P" unit="para"/>Θουκυδίδης Ἀθηναῖος ξυνέγραψε τὸν πόλεμον τῶν
+                Πελοποννησίων καὶ Ἀθηναίων, ὡς ἐπολέμησαν πρὸς ἀλλήλους, ἀρξάμενος εὐθὺς καθισταμένου
+                καὶ ἐλπίσας μέγαν τε ἔσεσθαι καὶ ἀξιολογώτατον τῶν προγεγενημένων, τεκμαιρόμενος ὅτι
+                ἀκμάζοντές τε ᾖσαν ἐς αὐτὸν ἀμφότεροι παρασκευῇ τῇ πάσῃ καὶ τὸ ἄλλο Ἑλληνικὸν ὁρῶν
+                ξυνιστάμενον πρὸς ἑκατέρους, τὸ μὲν εὐθύς, τὸ δὲ καὶ διανοούμενον. </p>
+            </div>
+            <div type="textpart" subtype="section" error_making="2">
+              <p>κίνησις γὰρ αὕτη μεγίστη δὴ τοῖς Ἕλλησιν ἐγένετο καὶ μέρει τινὶ τῶν βαρβάρων, ὡς δὲ
+                εἰπεῖν καὶ ἐπὶ πλεῖστον ἀνθρώπων.</p>
+            </div>
+          </div>
+          <div type="textpart" subtype="chapter" n="4">
+            <div type="textpart" subtype="section" error_making="1">
+              <p>
+                <milestone ed="P" unit="para"/>Μίνως γὰρ παλαίτατος ὧν ἀκοῇ ἴσμεν ναυτικὸν ἐκτήσατο
+                καὶ τῆς νῦν Ἑλληνικῆς θαλάσσης ἐπὶ πλεῖστον ἐκράτησε καὶ τῶν Κυκλάδων νήσων ἦρξέ τε
+                καὶ οἰκιστὴς πρῶτος τῶν πλείστων ἐγένετο, Κᾶρας ἐξελάσας καὶ τοὺς ἑαυτοῦ παῖδας
+                ἡγεμόνας ἐγκαταστήσας: τό τε λῃστικόν, ὡς εἰκός, καθῄρει ἐκ τῆς θαλάσσης ἐφ᾽ ὅσον
+                ἐδύνατο, τοῦ τὰς προσόδους μᾶλλον ἰέναι αὐτῷ. </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </body>
+  </text>
+</TEI>

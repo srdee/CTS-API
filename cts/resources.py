@@ -25,7 +25,7 @@ class Resource(object):
         """
         self.name = name
         self.texts = texts
-        self.inventory = Inventory(path=inventory, rewriting_rules=rewriting_rules)
+        self.inventory = Inventory(xml=inventory, rewriting_rules=rewriting_rules)
         self.rewriting_rules = rewriting_rules
 
 
