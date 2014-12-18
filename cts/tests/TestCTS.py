@@ -133,3 +133,59 @@ def TestNamespaceURI():
         </TEI>
     """)
     assert len(warnings) == 0, "Good formated xmlns should not raise Error"
+
+
+def TestNamespaceWarnings():
+    #Test when there is one element with no namespace
+    c = cts.xml.texts.Citation(
+        xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/TEI.2/tei:text/tei:body/\"/>",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    errors = [e.string for e in c.testNamespace()]
+    assert len(errors) == 1, "Scope with no namespace shortcut should raise an error"
+    assert "has no namespaces shortcuts like 'tei:'" in errors[0], "Scope with no namespace shortcut in xPath should have a message about it"
+
+    #Test when there is one element with unknown namespace
+    c = cts.xml.texts.Citation(
+        xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/google:TEI.2/tei:text/tei:body/\"/>",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    errors = [e.string for e in c.testNamespace()]
+    assert len(errors) == 1, "Scope with unknown namespace shortcut in xPath"
+    assert "has namespaces shortcuts with no bindings" in errors[0], "Scope with unknown namespace shortcut in xPath should have a message about it"
+
+    #Test when there is one element with no namespace
+    c = cts.xml.texts.Citation(
+        xml="<citation label=\"chapter\" xpath=\"/div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    errors = [e.string for e in c.testNamespace()]
+    assert len(errors) == 1, "xpath with no namespace shortcut should raise an error"
+    assert "has no namespaces shortcuts like 'tei:'" in errors[0], "xpath with no namespace shortcut in xPath should have a message about it"
+
+    #Test when there is one element with unknown namespace
+    c = cts.xml.texts.Citation(
+        xml="<citation label=\"chapter\" xpath=\"/google:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    errors = [e.string for e in c.testNamespace()]
+    assert len(errors) == 1, "xpath with unknown namespace shortcut in xPath"
+    assert "has namespaces shortcuts with no bindings" in errors[0], "xpath with unknown namespace shortcut in xPath should have a message about it"
+
+    #Test when there is one element with unknown namespace
+    c = cts.xml.texts.Citation(
+        xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    errors = [e.string for e in c.testNamespace()]
+    assert len(errors) == 0, "Correct xpath and scope should not raise error"
