@@ -94,6 +94,7 @@ class Citation(object):
         """
         match = len(shortcut_namespace.findall(string))
         expected = len([path for path in string.split("/") if len(path) > 0])
+
         if failure_condition == "equal" and match != expected:
             return [Error("{0}'s attribute for Citation Level {2} has no namespaces shortcuts like 'tei:' ({1})".format(name, original_string, level))]
         elif failure_condition == "greater" and match > 0:
@@ -235,7 +236,8 @@ class Citation(object):
                 status.append(True)
             else:
                 status.append(False)
-                warnings = self.testNamespace(level=level, warnings=warnings)
+
+            warnings = self.testNamespace(level=level, warnings=warnings)
 
             if ignore_replication is False:
                 warnings = self.testReplication(xml=xml, level=level, warnings=warnings)
