@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree as ElementTree
+from .helpers import xmlParsing
 from .errors import *
 from .texts import *
 
@@ -21,10 +21,7 @@ class Work(object):
         self.strict = strict
         self.rewriting_rules = rewriting_rules
 
-        if isinstance(xml, ElementTree.Element):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         self.id = xml.get("projid")
 
@@ -91,10 +88,7 @@ class TextGroup(object):
         self.strict = strict
         self.rewriting_rules = rewriting_rules
 
-        if isinstance(xml, (ElementTree.Element)):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         self.id = xml.get("projid")
         self.name = self.xml.find("{http://chs.harvard.edu/xmlns/cts3/ti}groupname").text
@@ -125,10 +119,10 @@ class TextGroup(object):
 
 class Inventory(object):
     """ Represents a CTS Inventory file """
-    def __init__(self, path=None, rewriting_rules={}, strict=False):
+    def __init__(self, xml=None, rewriting_rules={}, strict=False):
         """ Initiate an Inventory object
 
-        :param path: The path to the Inventory.xml file
+        :param path: The path to the Inventory.xml file or a string or a xml ElementTree representation
         :type path: str or unicode
         :param rewriting_rules: A dictionary where key are string to be replaced by their value
         :type rewriting_rules: dict
@@ -138,7 +132,7 @@ class Inventory(object):
         self.strict = strict
         self.rewriting_rules = rewriting_rules
 
-        self.path = path
+        self.xml = xml
         self.textGroups = list()
         self._load()
         self._retrieveTextGroup()
@@ -146,8 +140,8 @@ class Inventory(object):
     def _load(self):
         """ Load the xml for further checking
         """
-        self.xml = ElementTree.parse(self.path)
-        self.root = self.xml.getroot()
+
+        self.xml = xmlParsing(self.xml)
 
     def _retrieveTextGroup(self):
         for group in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}textgroup"):

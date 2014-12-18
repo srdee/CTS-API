@@ -8,14 +8,33 @@ import cts.xml.texts
 
 basePath = os.path.dirname(os.path.abspath(__file__)) + "/test_files"
 test_inventory_path = basePath + "/test_inventory.xml"
-inv = cts.xml.inventory.Inventory(path=test_inventory_path, rewriting_rules={}, strict=False)
+inv = cts.xml.inventory.Inventory(xml=test_inventory_path, rewriting_rules={}, strict=False)
 inv_correct = cts.xml.inventory.Inventory(
-    path=test_inventory_path,
+    xml=test_inventory_path,
     rewriting_rules={
         "/db/repository/greekLit/tlg0003/tlg001/": basePath + "/"
     },
     strict=False
 )
+
+editionTest = """
+<edition projid="greekLit:perseus-grc2">
+    <label xml:lang="en">The Peloponnesian War (Oxford 1942 Epidoc)</label>
+    <description xml:lang="eng">Thucydides. Historiae in two volumes. Oxford, Oxford University
+      Press. 1942.</description>
+    <online docname="/db/repository/greekLit/tlg0003/tlg001/tlg0003.tlg001.perseus-grc2.xml">
+      <validate schema="tei-xl.xsd"/>
+      <namespaceMapping abbreviation="tei" nsURI="http://www.tei-c.org/ns/1.0"/>
+      <citationMapping>
+        <citation label="book" xpath="/tei:div[@n='?']" scope="/tei:TEI/tei:text/tei:body/tei:div">
+          <citation label="chapter" xpath="/tei:div[@n='?']" scope="/tei:TEI/tei:text/tei:body/tei:div/tei:div[@n='?']">
+            <citation label="section" xpath="/tei:div[@n='?']" scope="/tei:TEI/tei:text/tei:body/tei:div/tei:div[@n='?']/tei:div[@n='?']"/>
+          </citation>
+        </citation>
+      </citationMapping>
+    </online>
+</edition>
+"""
 
 
 def inventory_setup():
@@ -25,7 +44,6 @@ def inventory_setup():
 @with_setup(inventory_setup, None)
 def TestInventoryAttributes():
     """ Test Inventory attributes are written """
-    assert inv.path == test_inventory_path
     assert len(inv.textGroups) == 1
     assert len(inv.getTexts()) == 2
 
@@ -71,3 +89,17 @@ def TestTranslationDocumentCitation():
     results, errors = doc.testCitation()
     assert results == [True, True], "Results for Translations document citation test should be successful"
     assert "Citation Mapping (2) has label chapter, while refState[2] has unit error_creator" in [error.string for error in errors]
+
+
+@with_setup(inventory_setup, None)
+def TestEditionDocumentCitation():
+    doc = inv_correct.textGroups[0].works[0].editions[0].document
+    assert doc.path == basePath + "/tlg0003.tlg001.perseus-grc2.xml"  # Because no rewriting_rules
+    assert_is_instance(doc.citation, cts.xml.texts.Citation)
+    results, errors = doc.testCitation()
+    assert results == [True, True, False], "Results for Translations document citation test should be successful except level 3"
+
+
+def TestNoNamespace():
+    #c = Citation()
+    pass

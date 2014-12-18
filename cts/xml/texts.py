@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-import xml.etree.ElementTree as ElementTree
 from codecs import *
 from ..shell import Error
+from .helpers import xmlParsing
 import os
 import re
 
@@ -38,10 +38,7 @@ class Citation(object):
         :type strict: boolean
         """
 
-        if isinstance(xml, ElementTree.Element):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         """label="Chapter" xpath="/tei:div[@n='?']" scope="/tei:TEI/tei:text/tei:body"""
 
@@ -160,7 +157,7 @@ class Citation(object):
         ]
 
         if len(error_found) == 0:
-            tag = xml.getroot().tag
+            tag = xml.tag
             xmlns = tag[0:].split("}")[0]+"}"
             if "{" not in tag:
                 warnings.append(Error(error_msg[0]))
@@ -209,7 +206,7 @@ class Citation(object):
 
         if target is not None:
             try:
-                xml = ElementTree.parse(target)
+                xml = xmlParsing(target)
             except Exception as E:
                 if self.strict is False:
                     status.append(False)
@@ -260,10 +257,7 @@ class Document(object):
         :type strict: boolean
         """
 
-        if isinstance(xml, ElementTree.Element):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         self.rewriting_rules = rewriting_rules
         self.strict = strict
@@ -342,10 +336,7 @@ class Text(object):
         :type strict: boolean
         """
 
-        if isinstance(xml, ElementTree.Element):
-            self.xml = xml
-        else:
-            self.xml = ElementTree.parse(xml).getroot()
+        self.xml = xmlParsing(xml)
 
         self.rewriting_rules = rewriting_rules
         self.strict = strict
