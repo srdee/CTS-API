@@ -113,3 +113,41 @@ def TestChildrenRetriever():
         }
     )
     assert_is_instance(c.children, cts.xml.texts.Citation)
+
+
+def TestReplication():
+    right = """<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader type="text">
+    <encodingDesc>
+      <refsDecl>
+        <refState unit="book" delim="."/>
+        <refState unit="chapter" delim="."/>
+      </refsDecl>
+    </encodingDesc>
+  </teiHeader>
+  </TEI>
+    """
+    wrong = """<TEI xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader type="text">
+    <encodingDesc>
+      <refsDecl>
+        <refState unit="error_maker" delim="."/>
+        <refState unit="chapter" delim="."/>
+      </refsDecl>
+    </encodingDesc>
+  </teiHeader>
+  </TEI>
+    """
+    c = cts.xml.texts.Citation(
+        xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"book\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\">
+        <citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>
+        </citation>
+        """,
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    results = c.testReplication(xml=right)
+    assert len(results) == 0, "Good replication should not fail"
+    results = c.testReplication(xml=wrong)
+    assert len(results) > 0, "Wrong replication on one level should fail on one level"

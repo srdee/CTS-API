@@ -113,6 +113,7 @@ class Citation(object):
         :rtype: List(ShellObject)
         """
         try:
+            xml = xmlParsing(xml)
             refState = xml.findall(".//{http://www.tei-c.org/ns/1.0}refsDecl/{http://www.tei-c.org/ns/1.0}refState")
             lenRefState = len(refState)
 
@@ -140,8 +141,8 @@ class Citation(object):
                     ]
                     if len(already_there) == 0:
                         warnings.append(Error("No <refState> nor replication of <CitationMapping> found in this file"))
-        except:
-            warnings.append(Error("Unable to run xpath for <refState>"))
+        except Exception as E:
+            warnings.append(Error("Unable to run xpath for <refState> (Reason : {0}".format(E.message)))
 
         return warnings
 
