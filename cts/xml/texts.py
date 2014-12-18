@@ -147,6 +147,7 @@ class Citation(object):
     def testNamespaceURI(self, xml=None, warnings=None):
         """ Test if there is a good namespace URI
         """
+        xml = xmlParsing(xml)  # For tests at least, we need to be able to call this function from oustide, serving string instead of xml.ElementTree
         if warnings is None:
             warnings = []
 

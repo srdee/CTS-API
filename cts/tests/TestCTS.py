@@ -101,5 +101,16 @@ def TestEditionDocumentCitation():
 
 
 def TestNoNamespace():
-    #c = Citation()
-    pass
+    c = cts.xml.texts.Citation(
+        xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    c.testNamespaceURI(xml="""<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="http://www.stoa.org/epidoc/schema/latest/tei-epidoc.rng" schematypens="http://relaxng.org/ns/structure/1.0"?>
+        <TEI>
+        <teiHeader></teiHeader>
+        <text></text>
+        </TEI>
+    """)

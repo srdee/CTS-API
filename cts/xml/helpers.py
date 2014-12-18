@@ -11,14 +11,12 @@ def xmlParsing(xml=None):
     :rtype: ElementTree.Element
     """
     if isinstance(xml, (str, unicode)):
-        try:
+        if "<" in xml and ">" in xml:
             return ElementTree.fromstring(xml)
-        except:  # If it fails to parse sring, it means it's a path
-            try:
-                return ElementTree.parse(xml).getroot()
-            except:
-                return None
+        else:
+            return ElementTree.parse(xml).getroot()
     elif isinstance(xml, ElementTree.Element):
         return xml
     else:
-        return None
+        msg = "XML given is no XML \n {0}".format(xml)
+        raise ValueError(msg)
