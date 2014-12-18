@@ -151,3 +151,38 @@ def TestReplication():
     assert len(results) == 0, "Good replication should not fail"
     results = c.testReplication(xml=wrong)
     assert len(results) > 0, "Wrong replication on one level should fail on one level"
+
+
+def TestAndOperator():
+    xml = """<TEI.2 xmlns="http://www.tei-c.org/ns/1.0">
+  <teiHeader type="text">
+    <encodingDesc>
+      <refsDecl>
+        <refState unit="book" delim="."/>
+      </refsDecl>
+    </encodingDesc>
+  </teiHeader>
+  <text>
+    <body>
+        <div1 n="1" type="book" />
+    </body>
+  </text>
+  </TEI.2>
+    """
+    c = cts.xml.texts.Citation(
+        xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"book\" xpath=\"/tei:div1[@n='?' and @type='book']\" scope=\"/tei:TEI.2/tei:text/tei:body/\" />""",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    status, error = c.test(target=xml)
+    assert (False not in status and len(error) == 0) is True, """ [@attr1 and @attr2] should not fail when xml is good """
+
+    c = cts.xml.texts.Citation(
+        xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"book\" xpath=\"/tei:div1[@n='?' and @type='error_maker']\" scope=\"/tei:TEI.2/tei:text/tei:body/\" />""",
+        namespaces={
+            "tei:": "{http://www.tei-c.org/ns/1.0}"
+        }
+    )
+    status, error = c.test(target=xml)
+    assert (True not in status and len(error) == 0) is True, """ [@attr1 and @attr2] should fail when xml is wrong """
