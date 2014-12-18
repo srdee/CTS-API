@@ -4,6 +4,7 @@
     <groupname xml:lang="en">Thucydides</groupname>
     <work projid="greekLit:tlg001" xml:lang="grc">
       <title xml:lang="en">The Peloponnesian War</title>
+      <title xml:lang="fr">La guerre du Peloponnese</title>
       <edition projid="greekLit:perseus-grc2">
         <label xml:lang="en">The Peloponnesian War (Oxford 1942 Epidoc)</label>
         <description xml:lang="eng">Thucydides. Historiae in two volumes. Oxford, Oxford University

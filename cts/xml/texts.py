@@ -382,6 +382,16 @@ class Text(object):
         except:
             raise NoTitleException()
 
+    def testCitation(self, ignore_replication=False):
+        """ Test the citation schema against the opened file
+
+        :param ignore_replication: Ignore testReplication test
+        :type ignore_replication: boolean
+        :returns: Indicator of success and list of warnings
+        :rtype: tuple(boolean, list)
+        """
+        self.document.testCitation(ignore_replication=ignore_replication)
+
 
 class Edition(Text):
     def __init__(self, xml, rewriting_rules={}, strict=False):

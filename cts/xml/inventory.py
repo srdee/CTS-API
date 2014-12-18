@@ -55,7 +55,13 @@ class Work(object):
         :rtype: str or unicode
         """
         try:
-            defaulttitle = list(self.titles.keys())[0]
+            keysList = list(self.titles.keys())
+            if "en" in keysList:
+                defaulttitle = "en"
+            elif "eng" in keysList:
+                defaulttitle = "eng"
+            else:
+                defaulttitle = list(self.titles.keys())[0]
             return self.titles.get(lang, self.titles[defaulttitle])
         except:
             raise NoTitleException()
