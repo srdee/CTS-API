@@ -7,7 +7,7 @@ from ..shell import Error
 import os
 import re
 
-shortcut_namespace = re.compile("([a-zA-Z0-9]+\:)")
+shortcut_namespace = re.compile("([a-zA-Z0-9]+\:(?!\/))")
 
 
 def replace_all(haystack, needles):
@@ -82,7 +82,9 @@ class Citation(object):
             xpath = string
         else:
             xpath = self.scope + self.xpath
+
         xpath = xpath.replace("@n='?'", "@n")
+        xpath = xpath.replace(" and ", "][")
 
         if removeRoot is True:
             xpath = "/".join(["."] + xpath.split("/")[2:])
@@ -136,7 +138,7 @@ class Citation(object):
                 else:
                     already_there = [
                         warning for warning in warnings
-                        if warning.__str__() == "No <refState> nor replication of <CitationMapping> found in this file"
+                        if warning.string == "No <refState> nor replication of <CitationMapping> found in this file"
                     ]
                     if len(already_there) == 0:
                         warnings.append(Error("No <refState> nor replication of <CitationMapping> found in this file"))
@@ -145,15 +147,18 @@ class Citation(object):
 
         return warnings
 
-    def testNamespaceURI(self, xml=None, warnings=[]):
+    def testNamespaceURI(self, xml=None, warnings=None):
         """ Test if there is a good namespace URI
         """
+        if warnings is None:
+            warnings = []
 
         error_msg = ["No namespace uri found in this document", "Wrong namespace URI found"]
         error_found = [
             warning for warning in warnings
-            if warning.__str__() in error_msg
+            if warning.string in error_msg
         ]
+
         if len(error_found) == 0:
             tag = xml.getroot().tag
             xmlns = tag[0:].split("}")[0]+"}"
@@ -174,12 +179,12 @@ class Citation(object):
         """
 
         warnings = warnings + self._testNamespace("scope", self.scope, self.scope, level=level)
-        warnings = warnings + self._testNamespace("scope", self.full_xpath(string=self.scope), self.scope, level=level, failure_condition="greater")
+        warnings = warnings + self._testNamespace("scope", self.full_xpath(string=self.scope), self.full_xpath(string=self.scope), level=level, failure_condition="greater")
         warnings = warnings + self._testNamespace("xpath", self.xpath, self.xpath, level=level)
         warnings = warnings + self._testNamespace("xpath", self.full_xpath(string=self.xpath), self.xpath, level=level, failure_condition="greater")
         return warnings
 
-    def test(self, target=None, level=1, xml=None, ignore_replication=False):
+    def test(self, target=None, level=1, xml=None, warnings=None, status=None, ignore_replication=False):
         """ Test the citation attributes against an open file
 
         :param target: path to the file to be opened
@@ -188,36 +193,41 @@ class Citation(object):
         :type level: int
         :param xml: XML parsed
         :type xml: ElementTree.Element
+        :param warnings: List of errors
+        :type warnings: list(ShellObject)
+        :param status: List of boolean indicating success on <citation>
+        :type status: list(boolean)
         :param ignore_replication: Ignore testReplication test
         :type ignore_replication: boolean
         :returns: Indicator of success and list of warnings
-        :rtype: tuple(list(boolean), list(string))
+        :rtype: tuple(list(boolean), list(ShellObject))
         """
-        status = []
-        warnings = []
-        xml = None
+        if warnings is None:
+            warnings = []
+        if status is None:
+            status = []
 
-        if target:
+        if target is not None:
             try:
                 xml = ElementTree.parse(target)
-            except:
+            except Exception as E:
                 if self.strict is False:
                     status.append(False)
-                    warnings.append(Error("Impossible to parse given element"))
+                    warnings.append(Error("Impossible to parse given element (Reason : {0})".format(E.message)))
                     return status, warnings
                 else:
                     raise ValueError("The target parameter value is neither a file, a str nor a unicode")
 
-        if xml:
+        if xml is not None:
             #First we test namespace
             warnings = self.testNamespaceURI(xml=xml, warnings=warnings)
             xpath = self.full_xpath(removeRoot=True)
 
             try:
                 found = xml.findall(xpath)
-            except:
+            except Exception as E:
                 found = []
-                warnings.append(Error("Unable to run xpath {0}".format(xpath)))
+                warnings.append(Error("Unable to run xpath {0} (Reason : {0} )".format(xpath, E.message)))
 
             if len(found) > 0:
                 status.append(True)
@@ -228,12 +238,12 @@ class Citation(object):
             if ignore_replication is False:
                 warnings = self.testReplication(xml=xml, level=level, warnings=warnings)
 
-            if self.children:
-                s, w = self.children.test(level=level+1, xml=xml, ignore_replication=ignore_replication)
-                status, warnings = status + s, warnings + w
+            if self.children is not None:
+                status, warnings = self.children.test(level=level+1, xml=xml, warnings=warnings, status=status, ignore_replication=ignore_replication)
 
         if len(status) == 0:
             status = [False]
+
         return status, warnings
 
 
