@@ -169,12 +169,14 @@ class Citation(object):
                 #warnings.append(Error("{0} != {1} ( {2} )".format(xmlns, " ".join(self.namespaces.values()), tag)))
         return warnings
 
-    def testNamespace(self, level=1, warnings=[]):
+    def testNamespace(self, level=1, warnings=None):
         """ Test scope as a string and see if there are issues
 
         :returns: List of Errors
         :rtype: list(Error)
         """
+        if warnings is None:
+            warnings = []
 
         warnings = warnings + self._testNamespace("scope", self.scope, self.scope, level=level)
         warnings = warnings + self._testNamespace("scope", self.full_xpath(string=self.scope), self.full_xpath(string=self.scope), level=level, failure_condition="greater")
