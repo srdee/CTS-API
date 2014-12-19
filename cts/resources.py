@@ -20,13 +20,31 @@ class Resource(object):
         :type name: str or unicode
         :param texts: The folder where we can find texts of the collection
         :type texts: str or unicode
-        :param inventory: The inventory file or path
-        :type inventory: str or unicode
+        :param inventory: The inventory file or path or Inventory class
+        :type inventory: str or unicode or Inventory
         """
         self.name = name
         self.texts = texts
-        self.inventory = Inventory(xml=inventory, rewriting_rules=rewriting_rules)
+        if isinstance(inventory, Inventory):
+            self.inventory = inventory
+        else:
+            self.inventory = Inventory(xml=inventory, rewriting_rules=rewriting_rules)
         self.rewriting_rules = rewriting_rules
+
+    def getDocuments(self, if_exists=True):
+        """ Retrieve documents in the hierarchy of the resource
+
+        :param if_exists: Retrieve documents only if able to find document locally
+        :type if_exists: boolean
+        :returns: All documents in this resource
+        :rtype: list(cts.xml.texts.Document)
+        """
+        documents = []
+        for textGroup in self.inventory.textGroups:
+            for work in textGroup.textGroups:
+                for text in work.getTexts():
+                    documents.append(text.document)
+        return documents
 
 
 class Corpus(object):
