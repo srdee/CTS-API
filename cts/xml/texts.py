@@ -329,6 +329,16 @@ class Document(object):
         status, warnings = self.citation.test(self.path, ignore_replication=ignore_replication)
         return status, warnings
 
+    def exists(self):
+        """ Check if the Document exists
+
+        :returns: Indicator of availability
+        :rtype: boolean
+        """
+        if os.path.isfile(self.path) is False:
+            raise False
+        return True
+
 
 class Text(object):
     """ Represents an opus/a Work inside a WorkGroup inside a CTS Inventory """
