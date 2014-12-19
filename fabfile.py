@@ -186,3 +186,19 @@ def deploy():
 def clean():
     """ Clean up build directory """
     shutil.rmtree(_get_build_dir())
+
+
+@task
+def push_cts():
+    """ Push Corpora to the Database """
+    _init()
+    db_start()
+    for corpus in env.corpora:
+        corpus.retrieve()
+
+    documents = []
+    for corpus in env.corpora:
+        for resource in corpus.resources:
+            documents = documents + resource.getDocuments(if_exists=True)
+
+    env.db.put(documents)
