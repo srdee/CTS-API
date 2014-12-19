@@ -41,9 +41,13 @@ class Resource(object):
         """
         documents = []
         for textGroup in self.inventory.textGroups:
-            for work in textGroup.textGroups:
+            for work in textGroup.works:
                 for text in work.getTexts():
-                    documents.append(text.document)
+                    if if_exists is True:
+                        if text.document.exists() is True:
+                            documents.append(text.document)
+                    else:
+                        documents.append(text.document)
         return documents
 
 
