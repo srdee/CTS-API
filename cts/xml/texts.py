@@ -213,13 +213,19 @@ class Citation(object):
         if target is not None:
             try:
                 xml = xmlParsing(target)
+            except IOError as E:
+                if self.strict is False:
+                    status.append(False)
+                    warnings.append(Error(E.message))
+                else:
+                    raise E
             except Exception as E:
                 if self.strict is False:
                     status.append(False)
                     warnings.append(Error("Impossible to parse given element (Reason : {0})".format(E.message)))
                     return status, warnings
                 else:
-                    raise ValueError("The target parameter value is neither a file, a str nor a unicode")
+                    raise E
 
         if xml is not None:
             #First we test namespace
