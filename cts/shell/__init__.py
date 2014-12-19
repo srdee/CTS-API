@@ -19,6 +19,7 @@ def documentTestResults(results, no_color=False):
     cts_success = 0
     cts_failure = 0
     parsing_errors = 0
+    unknown_files = 0
 
     for result in results:
         textName, raw_results = result
@@ -48,6 +49,7 @@ def documentTestResults(results, no_color=False):
             errors = [NumberedError(messages.index(error) + 1, error.string) for error in messages if isinstance(error, (Error, Warning))]
             messages = not_errors
             parsing_errors += len([1 for e in errors if "Impossible to parse given element" in e.string])
+            unknown_files += len([1 for e in errors if "File does not exist" in e.string])
             if len(errors) > 0:
                 messages = [Warning("Document {0} encountered following errors".format(textName))] + not_errors + errors
 
@@ -69,6 +71,8 @@ def documentTestResults(results, no_color=False):
     else:
         ret.append(Error("Results : {0} files have had parsing errors".format(parsing_errors)))
 
+    if unknown_files > 0:
+        ret.append(Error("{0} file(s) not found".format(unknown_files)))
     if no_color is True:
         ret2 = []
         for r in ret:

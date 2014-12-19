@@ -18,7 +18,7 @@ def removeEntities(path):
     :rtype: str or unicode
     """
     if os.path.isfile(path) is False:
-        raise IOError("File {0} does not exist".format(path))
+        raise IOError("File does not exist ( {0} )".format(path))
 
     with open(path, "r") as f:
         xml = f.read()
