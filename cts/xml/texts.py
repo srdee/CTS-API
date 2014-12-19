@@ -342,7 +342,7 @@ class Document(object):
         :rtype: boolean
         """
         if os.path.isfile(self.path) is False:
-            raise False
+            return False
         return True
 
 
