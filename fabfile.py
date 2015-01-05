@@ -215,3 +215,15 @@ def push_xq():
     db_start()
 
     shell.run(env.db.feedXQuery(), local)
+
+
+@task
+def stop_db():
+    _init(retrieve_init=False)
+    db_stop()
+
+@task
+def start_db():
+    _init(retrieve_init=False)
+    db_start()
+
