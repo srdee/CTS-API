@@ -1,10 +1,12 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import os
+
 from ..db import DB
 from .. import shell
 from ..xml.texts import Text
-import os
+import glob
 
 
 class ExistDB(DB):
@@ -63,9 +65,9 @@ class ExistDB(DB):
             return [
                 shell.Command(
                     "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
-                        textPath=text[0],
+                        textPath=texts[0],
                         binPath=self.directory+"/conf/",
-                        collection=text[1],
+                        collection=texts[1],
                         user=self.user.name,
                         password=self.user.password
                     )
@@ -79,4 +81,9 @@ class ExistDB(DB):
         :rtype: List(ShellObject)
 
         """
-        raise NotImplemented("This function is not implemented in this class")
+        package_directory = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../../xquery/existDB")
+        xqs = glob.glob('/'.join([package_directory, '*.xquery'])) + glob.glob('/'.join([package_directory, '*.xq']))
+
+        print(xqs)
+        xqs = [(xq, "xq") for xq in xqs]
+        return self.put(texts=xqs)
