@@ -84,6 +84,5 @@ class ExistDB(DB):
         package_directory = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../../xquery/existDB")
         xqs = glob.glob('/'.join([package_directory, '*.xquery'])) + glob.glob('/'.join([package_directory, '*.xq']))
 
-        print(xqs)
         xqs = [(xq, "xq") for xq in xqs]
         return self.put(texts=xqs)
