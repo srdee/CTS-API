@@ -1,3 +1,4 @@
+xquery version "3.0";
 (:
   Copyright 2010-2014 The Alpheios Project, Ltd.
   http://alpheios.net
@@ -16,21 +17,25 @@
 
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
- :)
+:)
+
+import module namespace mapsutils = "http://github.com/ponteineptique/CTS-API"
+       at "maps-utils.xquery";
 import module namespace ctsx = "http://alpheios.net/namespaces/cts"
        at "cts.xquery";
 import module namespace ctsi = "http://alpheios.net/namespaces/cts-implementation"
        at "cts-impl.xquery";
 import module namespace tan  = "http://alpheios.net/namespaces/text-analysis"
        at "textanalysis-utils.xquery";
+import module namespace console = "http://exist-db.org/xquery/console";
+(:  :import module namespace map = "http://www.w3.org/2005/xpath-functions/map"; :)
 
 declare namespace CTS = "http://chs.harvard.edu/xmlns/cts";
 declare namespace tei = "http://www.tei-c.org/ns/1.0";
 declare namespace error = "http://marklogic.com/xdmp/error";
 
-declare option xdmp:mapping "false";
-
-let $map := map:map()
+let $startTime := util:system-time()
+let $map := map:new()
 let $_ := ctsi:add-response-header("Access-Control-Allow-Origin", "*")
 let $e_query := ctsi:get-request-parameter("request", ())
 let $e_urn :=  ctsi:get-request-parameter("urn", ())
@@ -81,7 +86,7 @@ try
     if ($e_urn)
     then
     (
-      map:put($map, "cts", ctsx:parseUrn($e_inv, $e_urn)),
+      mapsutils:put($map, "cts", ctsx:parseUrn($e_inv, $e_urn)),
       map:get($map, "cts")
     )
     else ()
@@ -90,13 +95,12 @@ try
       xs:QName("INVALID-REQUEST"),
       "Unsupported request: " || $e_query
     )
-}
-catch ($e)
-{
-  xdmp:log($e),
+} catch * {
+  console:log($err:description || $err:code || $err:value),
   <CTS:CTSError>
-    <message>{ $e/error:code/fn:string() }</message>
-    <code>{ $e/error:name/fn:string() }</code>
+    <message>{ $err:description }</message>
+    <value>{ $err:value }</value>
+    <code>{ $err:code }</code>
   </CTS:CTSError>
 }
 
@@ -110,7 +114,7 @@ let $response :=
     {
       element CTS:request
       {
-        attribute elapsed-time { xdmp:elapsed-time() },
+        attribute elapsed-time { string(seconds-from-duration(util:system-time() - $startTime)) },
         element CTS:requestName { $e_query },
         element CTS:requestUrn { $e_urn },
         element CTS:psg { xs:string($cts/passage) },

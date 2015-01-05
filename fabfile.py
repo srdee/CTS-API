@@ -206,3 +206,24 @@ def push_cts():
             documents = documents + resource.getTexts(if_exists=True)
 
     shell.run(env.db.put(documents), local)
+
+
+@task
+def push_xq():
+    """ Push XQueries to the Database """
+    _init(retrieve_init=False)
+    db_start()
+
+    shell.run(env.db.feedXQuery(), local)
+
+
+@task
+def stop_db():
+    _init(retrieve_init=False)
+    db_stop()
+
+@task
+def start_db():
+    _init(retrieve_init=False)
+    db_start()
+
