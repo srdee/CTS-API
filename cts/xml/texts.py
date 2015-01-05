@@ -365,6 +365,7 @@ class Text(object):
         self.strict = strict
 
         self.id = xml.get("projid")
+        self.collection = self.id.split(":")[0]
         self.titles = {}
         self._retrieveTitles()
 
