@@ -20,13 +20,54 @@ class Resource(object):
         :type name: str or unicode
         :param texts: The folder where we can find texts of the collection
         :type texts: str or unicode
-        :param inventory: The inventory file or path
-        :type inventory: str or unicode
+        :param inventory: The inventory file or path or Inventory class
+        :type inventory: str or unicode or Inventory
         """
         self.name = name
         self.texts = texts
-        self.inventory = Inventory(xml=inventory, rewriting_rules=rewriting_rules)
+        if isinstance(inventory, Inventory):
+            self.inventory = inventory
+        else:
+            self.inventory = Inventory(xml=inventory, rewriting_rules=rewriting_rules)
         self.rewriting_rules = rewriting_rules
+
+    def getDocuments(self, if_exists=True):
+        """ Retrieve documents in the hierarchy of the resource
+
+        :param if_exists: Retrieve documents only if able to find document locally
+        :type if_exists: boolean
+        :returns: All documents in this resource
+        :rtype: list(cts.xml.texts.Document)
+        """
+        documents = list()
+        for textGroup in self.inventory.textGroups:
+            for work in textGroup.works:
+                for text in work.getTexts():
+                    if if_exists is True:
+                        if text.document.exists() is True:
+                            documents.append(text.document)
+                    else:
+                        documents.append(text.document)
+        return documents
+
+    def getTexts(self, if_exists=True):
+        """ Retrieve texts in the hierarchy of the resource
+
+        :param if_exists: Retrieve texts only if able to find document locally
+        :type if_exists: boolean
+        :returns: All texts in this resource
+        :rtype: list(cts.xml.texts.Text)
+        """
+        texts = list()
+        for textGroup in self.inventory.textGroups:
+            for work in textGroup.works:
+                for text in work.getTexts():
+                    if if_exists is True:
+                        if text.document.exists() is True:
+                            texts.append(text)
+                    else:
+                        texts.append(text)
+        return texts
 
 
 class Corpus(object):

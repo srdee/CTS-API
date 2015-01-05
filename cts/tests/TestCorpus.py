@@ -6,6 +6,7 @@ from nose import with_setup
 from nose.tools import assert_is_instance
 import cts.xml.inventory
 import cts.xml.texts
+import cts.resources
 
 basePath = os.path.dirname(os.path.abspath(__file__)) + "/test_files"
 test_inventory_path = basePath + "/test_inventory.xml"
@@ -99,3 +100,23 @@ def TestEditionDocumentCitation():
     assert_is_instance(doc.citation, cts.xml.texts.Citation)
     results, errors = doc.testCitation()
     assert results == [True, True, False], "Results for Translations document citation test should be successful except level 3"
+
+
+def TestGetTexts():
+    resources = inv_correct.textGroups[0].works[0].getTexts()
+    assert len([t for t in resources if isinstance(t, cts.xml.texts.Edition)]) == 1, "getTexts() should returns Edition"
+    assert len([t for t in resources if isinstance(t, cts.xml.texts.Translation)]) == 1, "getTexts() should returns Translation"
+
+
+def TestGetDocuments():
+    R = cts.resources.Resource(name="don't care", texts="don't care", inventory=inv_correct, rewriting_rules={})
+    texts = R.getDocuments(if_exists=False)
+    assert len([t for t in texts if isinstance(t, cts.xml.texts.Document)]) == 2, "getTexts() should returns all documents when not checking if exists"
+
+    texts = R.getDocuments(if_exists=True)
+    assert len([t for t in texts if isinstance(t, cts.xml.texts.Document)]) == 2, "getTexts() should returns all documents if they exists"
+
+    R = cts.resources
+    R = cts.resources.Resource(name="don't care", texts="don't care", inventory=inv, rewriting_rules={})
+    texts = R.getDocuments(if_exists=True)
+    assert len([t for t in texts if isinstance(t, cts.xml.texts.Document)]) == 0, "getTexts() should returns no documents if documents don't exist"

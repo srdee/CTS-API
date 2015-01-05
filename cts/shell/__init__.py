@@ -233,7 +233,7 @@ def is_msg(cmd):
     return isinstance(cmd, (Parameter, Helper, Request, Separator, Warning, Success, Error, NumberedError))
 
 
-def run(cmds, host_fn, input_required=True):
+def run(cmds, host_fn, input_required=True, config=None):
     """ Given a variable cmds, decides whether to prompt user with a command to run or run it using given host_fn function
 
     :param cmds: The command to print. If a list, we run the command using host_fn()
@@ -242,13 +242,18 @@ def run(cmds, host_fn, input_required=True):
     :type host_fn: function
     :param input_required: Indicates if we should ask user to confirm he has read everything
     :type input_required: boolean
+    :param config: A dictionary for replacing data in string.format
+    :type config: dict(string)
 
     """
     if is_msg(cmds):
         print(cmds)
 
     elif isinstance(cmds, Command):
-        host_fn(cmds.to_string())
+        if config is not None:
+            host_fn(cmds.to_string().format(**config))
+        else:
+            host_fn(cmds.to_string())
 
     elif isinstance(cmds, list):
         last_cmd = None
@@ -258,7 +263,7 @@ def run(cmds, host_fn, input_required=True):
                 if last_cmd and is_msg(cmd) is True and isinstance(cmd, (Command)) is True:  # If our last ConsoleObject was a string to print and the next one is a Command to run, we need to ask if user is ok with it
                         raw_input("Press enter when you have done previous steps")
                 last_cmd = cmd
-            run(cmd, host_fn)
+            run(cmd, host_fn, input_required=input_required, config=config)
 
         if is_msg(last_cmd) and input_required is True:
             raw_input("Press enter to continue")

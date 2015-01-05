@@ -34,6 +34,14 @@ class Work(object):
         self._retrieveEditions()
         self._retrieveTranslations()
 
+    def getTexts(self):
+        """ Retrieve texts in the hierarchy of the work
+
+        :returns: All texts in this Work
+        :rtype: list(cts.xml.texts.Text)
+        """
+        return self.editions + self.translations
+
     def _retrieveTitles(self):
         """ Retrieve titles from the xml """
         for title in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}title"):

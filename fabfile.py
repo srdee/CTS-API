@@ -74,7 +74,7 @@ def _rewriting_dic(dic, modulo=""):
     return ret
 
 
-def _fill_config():
+def _fill_config(retrieve_init=True):
     """ Create needed instances """
     user = Credential()
     user.from_dic(env.config["db"]["user"])
@@ -94,15 +94,15 @@ def _fill_config():
             path=r["path"],
             resources=_rewriting_list(r["resources"], modulo="data"),
             target=env.build_dir + "/data",
-            retrieve_init=True
+            retrieve_init=retrieve_init
         ) for r in env.config["repositories"]
     ]
 
 
-def _init():
+def _init(retrieve_init=True):
     _get_config()
     _get_build_dir()
-    _fill_config()
+    _fill_config(retrieve_init=retrieve_init)
 
 
 def _check_git_version():
@@ -175,8 +175,10 @@ def deploy():
     _init()
     print("Downloading DB software")
     env.db.retrieve()
+    """
     for corpus in env.corpora:
         corpus.retrieve()
+    """
     db_setup()
     db_start()
     db_stop()
@@ -186,3 +188,21 @@ def deploy():
 def clean():
     """ Clean up build directory """
     shutil.rmtree(_get_build_dir())
+
+
+@task
+def push_cts():
+    """ Push Corpora to the Database """
+    _init(retrieve_init=False)
+    db_start()
+    """
+    for corpus in env.corpora:
+        corpus.retrieve()
+    """
+
+    documents = []
+    for corpus in env.corpora:
+        for resource in corpus.resources:
+            documents = documents + resource.getTexts(if_exists=True)
+
+    shell.run(env.db.put(documents), local)

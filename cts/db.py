@@ -99,27 +99,25 @@ class DB(object):
         """
         return self.file.get()
 
-    def put(self, path, collection=None):
+    def put(self, texts):
         """ Push XML file(s) into the XML database
 
-        :param path: Path to a directory
-        :type path: unicode or str
-        :param: Collection name (None by default, overwritten by the last element of path)
-        :returns: Boolean indicating success
+        :param texts: Document representing a XML file with its metadata
+        :type texts: cts.xml.texts.Texts or list(cts.xml.texts.Texts)
         :rtype: boolean
 
 
         """
         raise NotImplemented("This function is not implemented in this class")
 
-    def set_directory(self, directory = None):
+    def set_directory(self, directory=None):
         """ Sets the binary directory for the database
 
         :param directory: The directory of binaries for ExistDB
         :type directory: str or unicode
         :returns: Directory path
         :rtype: str or unicode
-        """ 
+        """
         self.directory = directory
         if directory is None:
             self.directory = self.file.directory

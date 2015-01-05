@@ -335,6 +335,16 @@ class Document(object):
         status, warnings = self.citation.test(self.path, ignore_replication=ignore_replication)
         return status, warnings
 
+    def exists(self):
+        """ Check if the Document exists
+
+        :returns: Indicator of availability
+        :rtype: boolean
+        """
+        if os.path.isfile(self.path) is False:
+            return False
+        return True
+
 
 class Text(object):
     """ Represents an opus/a Work inside a WorkGroup inside a CTS Inventory """
@@ -355,6 +365,7 @@ class Text(object):
         self.strict = strict
 
         self.id = xml.get("projid")
+        self.collection = self.id.split(":")[0]
         self.titles = {}
         self._retrieveTitles()
 
