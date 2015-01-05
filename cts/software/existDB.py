@@ -3,6 +3,7 @@
 
 from ..db import DB
 from .. import shell
+from ..xml.texts import Text
 import os
 
 
@@ -41,21 +42,41 @@ class ExistDB(DB):
             return [shell.Command("{0}/conf/bin/shutdown.sh".format(self.directory))]
 
     def put(self, texts):
-
         if isinstance(texts, list):
             commands = list()
             for text in texts:
                 commands = commands + self.put(text)
             return commands
-
-        return [
-            shell.Command(
-                "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
-                    textPath=texts.document.path,
-                    binPath=self.directory+"/conf/",
-                    collection=texts.collection,
-                    user=self.user.name,
-                    password=self.user.password
+        elif isinstance(texts, Text):
+            return [
+                shell.Command(
+                    "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
+                        textPath=texts.document.path,
+                        binPath=self.directory+"/conf/",
+                        collection=texts.collection,
+                        user=self.user.name,
+                        password=self.user.password
+                    )
                 )
-            )
-        ]
+            ]
+        else:       # Tuple
+            return [
+                shell.Command(
+                    "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
+                        textPath=text[0],
+                        binPath=self.directory+"/conf/",
+                        collection=text[1],
+                        user=self.user.name,
+                        password=self.user.password
+                    )
+                )
+            ]
+
+    def feedXQuery(self, path=None):
+        """ Feed an XQuery collection
+
+        :returns: List of ShellObjects
+        :rtype: List(ShellObject)
+
+        """
+        raise NotImplemented("This function is not implemented in this class")
