@@ -95,13 +95,12 @@ try
       xs:QName("INVALID-REQUEST"),
       "Unsupported request: " || $e_query
     )
-}
-catch Exception ($e)
-{
-  console:log($e),
+} catch * {
+  console:log($err:description || $err:code || $err:value),
   <CTS:CTSError>
-    <message>{ $e/error:code/fn:string() }</message>
-    <code>{ $e/error:name/fn:string() }</code>
+    <message>{ $err:description }</message>
+    <value>{ $err:value }</value>
+    <code>{ $err:code }</code>
   </CTS:CTSError>
 }
 

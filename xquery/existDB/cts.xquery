@@ -1,3 +1,4 @@
+xquery version "3.0"; 
 (:
   Copyright 2010-2014 The Alpheios Project, Ltd.
   http://alpheios.net
@@ -464,7 +465,7 @@ declare function ctsx:getValidUrns(
 
   return
     ctsx:_getUrns(
-      util:eval("$doc") || $scope,
+      util:eval("$doc" || $scope),
       $cts/versionUrn || ":",
       "",
       $steps,

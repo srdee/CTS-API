@@ -1,3 +1,5 @@
+xquery version "3.0";
+
 (:
   Copyright 2010-2014 The Alpheios Project, Ltd.
   http://alpheios.net
