@@ -34,6 +34,7 @@ import module namespace cts-utils="http://alpheios.net/namespaces/cts-utils"
        at "cts-utils.xquery";
 import module namespace ctsi = "http://alpheios.net/namespaces/cts-implementation"
        at "cts-impl.xquery";
+import module namespace console = "http://exist-db.org/xquery/console";
 
 declare namespace CTS = "http://chs.harvard.edu/xmlns/cts";
 declare namespace ti = "http://chs.harvard.edu/xmlns/cts";
@@ -238,7 +239,7 @@ declare function ctsx:parseUrn($a_inv as xs:string, $a_urn as xs:string)
       }
 };
 
-declare private function ctsx:_parseRangePart($part1)
+declare %private function ctsx:_parseRangePart($part1)
 {
   if (fn:empty($part1)) then () else
 
@@ -351,8 +352,8 @@ declare function ctsx:getCapabilities($a_inv, $a_groupUrn, $a_workUrn)
     {
       element ti:TextInventory
       {
-        attribute xmlns:ti { "http://chs.harvard.edu/xmlns/cts3/ti" },
-        attribute xmlns:dc { "http://purl.org/dc/elements/1.1/" },
+        attribute {concat('xmlns:', "ti")} { "http://chs.harvard.edu/xmlns/cts3/ti" },
+        attribute {concat('xmlns:', "dc")} { "http://purl.org/dc/elements/1.1/" },
         attribute tiversion { "5.0.rc.1" },
         $ti/@*,
         $ti/*,
@@ -463,7 +464,7 @@ declare function ctsx:getValidUrns(
 
   return
     ctsx:_getUrns(
-      xdmp:value("$doc" || $scope),
+      util:eval("$doc") || $scope,
       $cts/versionUrn || ":",
       "",
       $steps,
@@ -635,12 +636,12 @@ declare function ctsx:findNextPrev(
     if ($path)
     then
       (: apply additional non-id predicates in xpath :)
-      (: TODO check the context of the xdmp:value($path) here :)
+      (: TODO check the context of the util:eval($path) here :)
       if ($a_dir = xs:string('p'))
       then
-        xdmp:value(concat("$a_node/preceding-sibling::*[name() = $kind and ",$path,"][1]"))
+        util:eval(concat("$a_node/preceding-sibling::*[name() = $kind and ",$path,"][1]"))
       else
-        xdmp:value(concat("$a_node/following-sibling::*[name() = $kind and ",$path,"][1]"))
+        util:eval(concat("$a_node/following-sibling::*[name() = $kind and ",$path,"][1]"))
     else if ($a_dir = xs:string('p'))
     then
       $a_node/preceding-sibling::*[name() = $kind]
@@ -741,7 +742,7 @@ declare function ctsx:getPassagePlus(
     (: return error if we can't determine the chunk size :)
     if (fn:not($chunkSize))
     then <l rend="error">Invalid Request</l>
-    else xdmp:value("$doc" || $xpath)
+    else util:eval("$doc" || $xpath)
   let $subref_orig :=
     if ($cts/subRef)
     then ctsx:findSubRef($passage_orig,$cts/subRef)
@@ -872,7 +873,7 @@ declare function ctsx:replaceBindVariables(
   )
 };
 
-declare private function ctsx:_rbv(
+declare %private function ctsx:_rbv(
   $a_start,
   $a_end,
   $a_path
@@ -947,7 +948,7 @@ declare function ctsx:replaceBindVariables(
   )
 };
 
-declare private function ctsx:_rbv($a_part, $a_path) as xs:string
+declare %private function ctsx:_rbv($a_part, $a_path) as xs:string
 {
   if (fn:empty($a_part)) then $a_path else
 
@@ -975,7 +976,7 @@ declare private function ctsx:_rbv($a_part, $a_path) as xs:string
 :)
 declare function ctsx:getCatalogEntry($a_cts) as node()*
 {
-xdmp:log(("cts", $a_cts, "end")),
+    console:log(("cts", $a_cts, "end")),
   let $version :=
     /(ti:edition|ti:translation)
       [@workUrn eq $a_cts/workUrn]
@@ -1162,7 +1163,7 @@ declare function ctsx:isCitationNode(
       if (fn:local-name($a_node) eq
           fn:replace(fn:substring-before($path, "["), "^[/]*/+", ""))
       then
-        xdmp:value("$a_node/parent::*" || $path)
+        util:eval("$a_node/parent::*" || $path)
       else ()
   return fn:count($matched) > 0
 };
@@ -1217,11 +1218,11 @@ declare function ctsx:_extractPassage(
   let $step2 := fn:head($a_path2)
   let $n1 :=
     if (fn:exists($a_path1) and fn:exists($step1))
-    then xdmp:value("$a_base/" || $step1)
+    then util:eval("$a_base/" || $step1)
     else ()
   let $n2 :=
     if (fn:exists($a_path2) and fn:exists($step2))
-    then xdmp:value("$a_base/" || $step2)
+    then util:eval("$a_base/" || $step2)
     else ()
 
   return
@@ -1320,8 +1321,8 @@ declare function ctsx:extractPassage($a_inv, $a_urn)
     )
 
   (: find passage start and end nodes in doc :)
-  let $n1 := xdmp:value("$doc" || $xpath1)
-  let $n2 := xdmp:value("$doc" || $xpath2)
+  let $n1 := util:eval("$doc" || $xpath1)
+  let $n2 := util:eval("$doc" || $xpath2)
 
   (: end node must not precede start node :)
   let $_ :=
@@ -1352,7 +1353,7 @@ declare function ctsx:extractPassage($a_inv, $a_urn)
   Return value:
     enumeration of URNs
 :)
-declare private function ctsx:_getUrns(
+declare %private function ctsx:_getUrns(
   $a_node as node(),
   $a_urn as xs:string,
   $a_sep as xs:string,
@@ -1366,8 +1367,8 @@ declare private function ctsx:_getUrns(
 
   let $step := fn:head($a_steps)
   let $path := "$a_node" || $step
-  let $nodes := xdmp:value("$a_node" || $step)
-  let $idVals := xdmp:value("$nodes/" || fn:head($a_ids))
+  let $nodes := util:eval("$a_node" || $step)
+  let $idVals := util:eval("$nodes/" || fn:head($a_ids))
   let $start :=
     if (fn:exists($a_startVals))
     then fn:index-of($idVals, fn:head($a_startVals))

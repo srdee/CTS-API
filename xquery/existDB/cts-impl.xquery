@@ -21,18 +21,19 @@
 (: Implementation-dependent routines :)
 
 module namespace ctsi = "http://alpheios.net/namespaces/cts-implementation";
+import module namespace transform = "http://exist-db.org/xquery/transform";
 
 declare function ctsi:add-response-header(
   $name as xs:string,
   $value as xs:string
 )
 {
-  xdmp:add-response-header($name, $value)
+  response:set-header($name, $value)
 };
 
 declare function ctsi:get-request-parameter($name as xs:string)
 {
-  xdmp:get-request-field($name)
+  request:get-parameter($name, ())
 };
 
 declare function ctsi:get-request-parameter(
@@ -40,31 +41,36 @@ declare function ctsi:get-request-parameter(
   $default as xs:string?
 )
 {
-  xdmp:get-request-field($name, $default)
+  request:get-parameter($name, $default)
 };
 
 declare function ctsi:get-request-body()
 {
-  xdmp:get-request-body()
+  request:get-data()
 };
 
 declare function ctsi:document-store(
-  $collection as xs:string?,
+  $collection as xs:string,
   $uri as xs:string,
   $root as node()
 )
 {
-  xdmp:document-insert(
+  xmldb:store(
+    $collection,
     $uri,
-    $root,
-    xdmp:default-permissions(),
-    (xdmp:default-collections(), $collection)
+    $root
   )
 };
 
-declare function ctsi:http-get($uri as xs:string)
+declare function ctsi:http-get(
+    $uri as xs:string
+)
 {
-  xdmp:http-get($uri)
+    httpclient:get(
+      fn:resolve-uri($uri),
+      fn:false(), (: Don't Persist :)
+      element()
+    ) 
 };
 
 (: wrapper for XSLT call :)
@@ -74,14 +80,5 @@ declare function ctsi:xslt-transform(
   $a_params as element(parameters)
 )
 {
-(: for eXist
   transform:transform($a_input, $a_stylesheet, $a_params)
- :)
-
-  let $map := map:map()
-  let $_ :=
-    for $param in $a_params/param
-    return map:put($map, $param/@name, $param/@value/fn:string())
-
-  return xdmp:xslt-eval($a_stylesheet, $a_input, $map)
 };
