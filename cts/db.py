@@ -103,7 +103,7 @@ class DB(object):
         """ Push XML file(s) into the XML database
 
         :param texts: Document representing a XML file with its metadata
-        :type texts: cts.xml.texts.Texts or list(cts.xml.texts.Texts)
+        :type texts: cts.xml.texts.Texts or list(cts.xml.texts.Texts) or tuple(str or unicode, str or unicode)
         :rtype: boolean
 
 
@@ -122,3 +122,12 @@ class DB(object):
         if directory is None:
             self.directory = self.file.directory
         return self.directory
+
+    def feedXQuery(self, path=None):
+        """ Feed an XQuery collection
+
+        :returns: List of ShellObjects
+        :rtype: List(ShellObject)
+
+        """
+        raise NotImplemented("This function is not implemented in this class")
