@@ -40,7 +40,22 @@ class ExistDB(DB):
         else:
             return [shell.Command("{0}/conf/bin/shutdown.sh".format(self.directory))]
 
-    def put(self, path, collection=None):
-        if collection:
-            collection = path.split("/")[-1]
-        return [shell.Command("{binPath}bin/client.sh -m /db/{collection} -p {textPath}".format(textPath=path, binPath=self.directory+"/conf/", collection=collection))]
+    def put(self, texts):
+
+        if isinstance(texts, list):
+            commands = list()
+            for text in texts:
+                commands = commands + self.put(text)
+            return commands
+
+        return [
+            shell.Command(
+                "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
+                    textPath=texts.document.path,
+                    binPath=self.directory+"/conf/",
+                    collection=texts.collection,
+                    user=self.user.name,
+                    password=self.user.password
+                )
+            )
+        ]
