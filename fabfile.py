@@ -207,13 +207,13 @@ def push_cts():
 
 
 @task
-def push_xq():
+def push_xq(cts=5):
     """ Push XQueries to the Database """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
     db_start()
 
-    shell.run(env.db.feedXQuery(), local)
+    shell.run(env.db.feedXQuery(version=int(cts)), local)
 
 
 @task
