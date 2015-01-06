@@ -65,7 +65,8 @@ try
   then ctsx:getCapabilities($e_inv)
   else if ($query = 'getvalidreff')
   then ctsx:getValidReff($e_inv, $e_urn, $e_level)
-
+  else if ($query = "getcatalogentry")
+  then ctsx:getCatalogEntry(ctsx:parseUrn($e_inv, $e_urn))
   else if ($query = 'getexpandedtitle')
   then ctsx:getExpandedTitle($e_inv, $e_urn)
   else if ($query = 'getpassage')
