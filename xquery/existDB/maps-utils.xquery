@@ -16,4 +16,4 @@ declare function mapsutils:put($map as map, $key as xs:string, $value as item())
 declare function mapsutils:merge($map1 as map, $map2 as map) as map {
     let $map := map:new(($map1, $map2))
     return $map
-}
+};
