@@ -92,6 +92,6 @@ class ExistDB(DB):
         if version == 3:
             xqs = [(xq, "xq") for xq in xqs]
         else:
-            xqs = [(xq, "inventory") for xq in xqs]
+            xqs = [(xq, "repository") for xq in xqs]
 
         return self.put(texts=xqs)
