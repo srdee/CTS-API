@@ -52,10 +52,10 @@ class ExistDB(DB):
         elif isinstance(texts, Text):
             return [
                 shell.Command(
-                    "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
+                    "{binPath}bin/client.sh -u {user} -P {password} -m {collection} -p {textPath}".format(
                         textPath=texts.document.path,
                         binPath=self.directory+"/conf/",
-                        collection=texts.collection,
+                        collection=texts.document.db_dir,
                         user=self.user.name,
                         password=self.user.password
                     )
@@ -74,15 +74,24 @@ class ExistDB(DB):
                 )
             ]
 
-    def feedXQuery(self, path=None):
+    def feedXQuery(self, path=None, version=5):
         """ Feed an XQuery collection
 
         :returns: List of ShellObjects
         :rtype: List(ShellObject)
 
         """
-        package_directory = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + "/../../xquery/existDB")
+        if version == 3:
+            path = "/../../xquery/existDB-cts3"
+        else:
+            path = "/../../xquery/existDB"
+
+        package_directory = os.path.abspath(os.path.dirname(os.path.abspath(__file__)) + path)
         xqs = glob.glob('/'.join([package_directory, '*.xquery'])) + glob.glob('/'.join([package_directory, '*.xq']))
 
-        xqs = [(xq, "xq") for xq in xqs]
+        if version == 3:
+            xqs = [(xq, "xq") for xq in xqs]
+        else:
+            xqs = [(xq, "repository") for xq in xqs]
+
         return self.put(texts=xqs)

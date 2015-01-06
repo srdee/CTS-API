@@ -333,7 +333,7 @@ declare function ctsx:getCapabilities($a_inv)
 };
 declare function ctsx:getCapabilities($a_inv, $a_groupUrn, $a_workUrn)
 {
-  let $ti := (/ti:TextInventory[@tiid = $a_inv])[1]
+  let $ti := collection('/db/repository/inventory')/ti:TextInventory[@tiid = $a_inv]
   let $groups :=
     (: specified work :)
     if (fn:exists($a_groupUrn) and fn:exists($a_workUrn))
@@ -353,9 +353,11 @@ declare function ctsx:getCapabilities($a_inv, $a_groupUrn, $a_workUrn)
     {
       element ti:TextInventory
       {
+        (:
         attribute {concat('xmlns:', "ti")} { "http://chs.harvard.edu/xmlns/cts3/ti" },
         attribute {concat('xmlns:', "dc")} { "http://purl.org/dc/elements/1.1/" },
         attribute tiversion { "5.0.rc.1" },
+        :)
         $ti/@*,
         $ti/*,
         for $group in $groups

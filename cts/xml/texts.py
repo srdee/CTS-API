@@ -276,6 +276,7 @@ class Document(object):
         self.strict = strict
 
         self.db = self.xml.get("docname")
+        self.db_dir = "/".join(self.db.split("/")[0:-1]) + "/"
         self.path = self._getFilePath()
         self.filename = os.path.basename(self.path)
 

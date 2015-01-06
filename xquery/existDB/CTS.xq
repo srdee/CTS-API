@@ -114,7 +114,7 @@ let $response :=
     {
       element CTS:request
       {
-        attribute elapsed-time { string(seconds-from-duration(util:system-time() - $startTime)) },
+        attribute elapsed-time { string(seconds-from-duration(util:system-time() - $startTime) * 1000) },
         element CTS:requestName { $e_query },
         element CTS:requestUrn { $e_urn },
         element CTS:psg { xs:string($cts/passage) },

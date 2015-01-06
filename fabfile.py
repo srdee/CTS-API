@@ -194,7 +194,7 @@ def clean():
 @task
 def push_cts():
     """ Push Corpora to the Database """
-    if env.db is None:
+    if not hasattr(env, "db"):
         _init(retrieve_init=False)
     db_start()
 
@@ -207,26 +207,26 @@ def push_cts():
 
 
 @task
-def push_xq():
+def push_xq(cts=5):
     """ Push XQueries to the Database """
-    if env.db is None:
+    if not hasattr(env, "db"):
         _init(retrieve_init=False)
     db_start()
 
-    shell.run(env.db.feedXQuery(), local)
+    shell.run(env.db.feedXQuery(version=int(cts)), local)
 
 
 @task
 def push_inv():
     """ Push inventory to the Database """
-    if env.db is None:
+    if not hasattr(env, "db"):
         _init(retrieve_init=False)
     db_start()
 
     for corpus in env.corpora:
         for resource in corpus.resources:
             if resource.inventory.path is not None:
-                shell.run(env.db.put((resource.inventory.path, "inventory")), local)
+                shell.run(env.db.put((resource.inventory.path, "repository/inventory")), local)
 
 
 @task
