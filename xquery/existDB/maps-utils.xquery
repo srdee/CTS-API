@@ -9,9 +9,11 @@ xquery version "3.0";
 module namespace mapsutils = "http://github.com/ponteineptique/CTS-API";
 
 declare function mapsutils:put($map as map, $key as xs:string, $value as item()) as map {
-    map:new(($map, map { $key : $value }))
+    let $map := map:new(($map, map:entry($key, $value )))
+    return $map
 };
 
 declare function mapsutils:merge($map1 as map, $map2 as map) as map {
-    map:new(($map, $map2))
-};
+    let $map := map:new(($map1, $map2))
+    return $map
+}
