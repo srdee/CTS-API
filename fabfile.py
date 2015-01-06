@@ -27,6 +27,7 @@ env.path = '/opt/webapps/' + env.project_name
 env.user = os.getenv("USER")
 env.git_version = 1.9
 env.build_dir = None
+env.corpora = None
 TIMESTAMP_FORMAT = "%Y%m%d%H%M%S"
 
 
@@ -193,12 +194,9 @@ def clean():
 @task
 def push_cts():
     """ Push Corpora to the Database """
-    _init(retrieve_init=False)
+    if env.db is None:
+        _init(retrieve_init=False)
     db_start()
-    """
-    for corpus in env.corpora:
-        corpus.retrieve()
-    """
 
     documents = []
     for corpus in env.corpora:
@@ -211,10 +209,24 @@ def push_cts():
 @task
 def push_xq():
     """ Push XQueries to the Database """
-    _init(retrieve_init=False)
+    if env.db is None:
+        _init(retrieve_init=False)
     db_start()
 
     shell.run(env.db.feedXQuery(), local)
+
+
+@task
+def push_inv():
+    """ Push inventory to the Database """
+    if env.db is None:
+        _init(retrieve_init=False)
+    db_start()
+
+    for corpus in env.corpora:
+        for resource in corpus.resources:
+            if resource.inventory.path is not None:
+                shell.run(env.db.put((resource.inventory.path, "inventory")), local)
 
 
 @task
@@ -222,8 +234,8 @@ def stop_db():
     _init(retrieve_init=False)
     db_stop()
 
+
 @task
 def start_db():
     _init(retrieve_init=False)
     db_start()
-

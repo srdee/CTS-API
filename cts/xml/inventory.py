@@ -139,7 +139,10 @@ class Inventory(object):
         """
         self.strict = strict
         self.rewriting_rules = rewriting_rules
+        self.path = None
 
+        if os.path.exists(xml):
+            self.path = xml        # Quick fix, should find a way to check if string is a path
         self.xml = xml
         self.textGroups = list()
         self._load()
