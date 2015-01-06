@@ -333,7 +333,7 @@ declare function ctsx:getCapabilities($a_inv)
 };
 declare function ctsx:getCapabilities($a_inv, $a_groupUrn, $a_workUrn)
 {
-  let $ti := collection('/db/repository/inventory')/ti:TextInventory[@tiid = $a_inv]
+  let $ti := (/ti:TextInventory[@tiid = $a_inv])[1]
   let $groups :=
     (: specified work :)
     if (fn:exists($a_groupUrn) and fn:exists($a_workUrn))
