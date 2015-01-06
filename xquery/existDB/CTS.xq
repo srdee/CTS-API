@@ -85,10 +85,8 @@ try
   then
     if ($e_urn)
     then
-    (
-      mapsutils:put($map, "cts", ctsx:parseUrn($e_inv, $e_urn)),
-      map:get($map, "cts")
-    )
+      let $map := mapsutils:put($map, "cts", ctsx:parseUrn($e_inv, $e_urn))
+      return map:get($map, "cts")
     else ()
   else
     fn:error(

@@ -128,7 +128,7 @@ declare function ctsx:parseUrn($a_inv as xs:string, $a_urn as xs:string)
     let $part2 := $passageComponents[2]
     let $part2 := if (fn:empty($part2)) then $part1 else $part2
 
-    let $namespaceUrn := fn:string-join($components[1 to 3], ":")
+    let $namespaceUrn := fn:string-join($components[1,2,3], ":")
     let $groupUrn := $namespaceUrn || ":" || $textgroup
     let $workUrn := $groupUrn || "." || $work
     let $cat := ctsx:getCapabilities($a_inv, $groupUrn, $workUrn)
