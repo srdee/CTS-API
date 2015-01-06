@@ -52,7 +52,7 @@ class ExistDB(DB):
         elif isinstance(texts, Text):
             return [
                 shell.Command(
-                    "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
+                    "{binPath}bin/client.sh -u {user} -P {password} -m /db/repository/{collection} -p {textPath}".format(
                         textPath=texts.document.path,
                         binPath=self.directory+"/conf/",
                         collection=texts.collection,
