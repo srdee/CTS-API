@@ -404,6 +404,7 @@ declare function ctsx:getValidReff($a_inv, $a_urn) as element(CTS:reply)
 {
   let $cts := ctsx:parseUrn($a_inv, $a_urn)
   let $entry := ctsx:getCatalogEntry($cts)
+  
   let $nparts := fn:count($cts/passageParts/rangePart[1]/part)
   return
     ctsx:getValidReff(
@@ -467,7 +468,7 @@ declare function ctsx:getValidUrns(
 
   return
     ctsx:_getUrns(
-      util:eval("$doc" || $scope),
+      $doc || $scope,
       $cts/versionUrn || ":",
       "",
       $steps,
@@ -981,13 +982,13 @@ declare function ctsx:getCatalogEntry($a_cts) as node()*
 {
     console:log(("cts", $a_cts, "end")),
   let $version :=
-    /(ti:edition|ti:translation)
+    //(ti:edition|ti:translation)
       [@workUrn eq $a_cts/workUrn]
       [@urn eq $a_cts/versionUrn]
 
   let $_ :=
     if (fn:empty($version))
-    then fn:error(xs:QName("BAD-URN"), "Version not found: " || $a_cts/urn)
+    then fn:error(xs:QName("BAD-URN"), "Version not found: " || $a_cts/versionUrn)
     else ()
 
   return $version
