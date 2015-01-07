@@ -246,7 +246,7 @@ def start_db():
 @task
 def convert_cts3():
     if not hasattr(env, "db"):
-        _init(retrieve_init=True)
+        _init(retrieve_init=False)
     i = 0
     for corpus in env.corpora:
         for resource in corpus.resources:
