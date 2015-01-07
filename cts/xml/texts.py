@@ -3,7 +3,7 @@
 
 from codecs import *
 from ..shell import Error
-from .helpers import xmlParsing
+from .helpers import xmlParsing, getNamespaceFromVersion
 import os
 import re
 
@@ -27,7 +27,7 @@ def replace_all(haystack, needles):
 
 class Citation(object):
     """ Represents a <citation /> tag """
-    def __init__(self, xml, namespaces={}, strict=False):
+    def __init__(self, xml, namespaces={}, strict=False, version=5):
         """ Initiate the object
 
         :param xml: XML markup or object, starting at the online tag
@@ -36,7 +36,11 @@ class Citation(object):
         :type namespaces: dict(str->str)
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
         :type strict: boolean
+        :param version: Indicate the version of CTS used
+        :type version: int
         """
+
+        self.version = version
 
         self.xml = xmlParsing(xml)
 
@@ -56,7 +60,7 @@ class Citation(object):
         :returns: A citation object
         :rtype: Citation
         """
-        children = self.xml.find("{http://chs.harvard.edu/xmlns/cts3/ti}citation")
+        children = self.xml.find("{0}citation".format(getNamespaceFromVersion(self.version)))
         if children is not None:
             return Citation(
                 xml=children,
@@ -259,7 +263,7 @@ class Citation(object):
 
 class Document(object):
     """ Represents the object inside <online /> tag for Editions, Translations """
-    def __init__(self, xml, rewriting_rules={}, strict=False):
+    def __init__(self, xml, rewriting_rules={}, strict=False, version=5):
         """ Initiate the object
 
         :param xml: XML markup or object, starting at the online tag
@@ -268,7 +272,11 @@ class Document(object):
         :type rewriting_rules: dict
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
         :type strict: boolean
+        :param version: Indicate the version of CTS used
+        :type version: int
         """
+
+        self.version = version
 
         self.xml = xmlParsing(xml)
 
@@ -280,14 +288,15 @@ class Document(object):
         self.path = self._getFilePath()
         self.filename = os.path.basename(self.path)
 
-        self.validate = self.xml.find("{http://chs.harvard.edu/xmlns/cts3/ti}validate").get("schema")
+        self.validate = self.xml.find("{0}validate".format(getNamespaceFromVersion(self.version))).get("schema")
 
         self.namespaces = self._retrieveNamespace()
 
         self.citation = Citation(
-            xml=self.xml.find("{http://chs.harvard.edu/xmlns/cts3/ti}citationMapping").find("{http://chs.harvard.edu/xmlns/cts3/ti}citation"),
+            xml=self.xml.find("{0}citationMapping".format(getNamespaceFromVersion(self.version))).find("{0}citation".format(getNamespaceFromVersion(self.version))),
             namespaces=self.namespaces,
-            strict=self.strict
+            strict=self.strict,
+            version=self.version
         )
 
     def _retrieveNamespace(self):
@@ -297,7 +306,7 @@ class Document(object):
         :rtype:
         """
         namespaces = {}
-        for namespace in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}namespaceMapping"):
+        for namespace in self.xml.findall("{0}namespaceMapping".format(getNamespaceFromVersion(self.version))):
             namespaces[namespace.get("abbreviation") + ":"] = "{" + namespace.get("nsURI") + "}"
         return namespaces
 
@@ -349,7 +358,7 @@ class Document(object):
 
 class Text(object):
     """ Represents an opus/a Work inside a WorkGroup inside a CTS Inventory """
-    def __init__(self, xml, rewriting_rules={}, strict=False):
+    def __init__(self, xml, rewriting_rules={}, strict=False, version=5):
         """ Initiate the object
 
         :param xml: A string representing the TextGroup in XML or a ElementTree object
@@ -358,7 +367,11 @@ class Text(object):
         :type rewriting_rules: dict
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
         :type strict: boolean
+        :param version: Indicate the version of CTS used
+        :type version: int
         """
+
+        self.version = version
 
         self.xml = xmlParsing(xml)
 
@@ -371,13 +384,14 @@ class Text(object):
         self._retrieveTitles()
 
         self.document = Document(
-            xml=self.xml.find("{http://chs.harvard.edu/xmlns/cts3/ti}online"),
-            rewriting_rules=self.rewriting_rules
+            xml=self.xml.find("{0}online".format(getNamespaceFromVersion(self.version))),
+            rewriting_rules=self.rewriting_rules,
+            version=self.version
         )
 
     def _retrieveTitles(self):
         """ Retrieve titles from the xml """
-        for title in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}label"):
+        for title in self.xml.findall("{0}label".format(getNamespaceFromVersion(self.version))):
             self._title_lang = title.get("{http://www.w3.org/XML/1998/namespace}lang")
             self.titles[self._title_lang] = title.text
 
@@ -410,7 +424,7 @@ class Text(object):
 
 
 class Edition(Text):
-    def __init__(self, xml, rewriting_rules={}, strict=False):
+    def __init__(self, xml, rewriting_rules={}, strict=False, version=5):
         """ Initiate the object
 
         :param xml: A string representing the TextGroup in XML or a ElementTree object
@@ -419,12 +433,14 @@ class Edition(Text):
         :type rewriting_rules: dict
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
         :type strict: boolean
+        :param version: Indicate the version of CTS used
+        :type version: int
         """
-        super(Edition, self).__init__(xml=xml, rewriting_rules=rewriting_rules, strict=strict)
+        super(Edition, self).__init__(xml=xml, rewriting_rules=rewriting_rules, strict=strict, version=version)
 
 
 class Translation(Text):
-    def __init__(self, xml, rewriting_rules={}, strict=False):
+    def __init__(self, xml, rewriting_rules={}, strict=False, version=5):
         """ Initiate the object
 
         :param xml: A string representing the TextGroup in XML or a ElementTree object
@@ -433,5 +449,7 @@ class Translation(Text):
         :type rewriting_rules: dict
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
         :type strict: boolean
+        :param version: Indicate the version of CTS used
+        :type version: int
         """
-        super(Translation, self).__init__(xml=xml, rewriting_rules=rewriting_rules, strict=strict)
+        super(Translation, self).__init__(xml=xml, rewriting_rules=rewriting_rules, strict=strict, version=version)
