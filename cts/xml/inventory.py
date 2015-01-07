@@ -157,13 +157,6 @@ class Inventory(object):
         self.textGroups = list()
         self._load()
 
-        self.namespace = namespace(self.xml)
-
-        if self.namespace == "http://chs.harvard.edu/xmlns/cts3/ti":
-            self.version = 3
-        else:
-            self.version = 5
-
         self._retrieveTextGroup()
 
     def convert(self, path=None):
@@ -191,13 +184,18 @@ class Inventory(object):
         for node in root.iter():
             node.tag = node.tag.replace(cts3ns, cts5ns)
 
-        for group in root.findall("{0}textgroup".format(getNamespaceFromVersion(self.version))):
-            group.tag = "{0}textgroup".format(cts5ns)
+        for group in root.findall("{0}textgroup".format(getNamespaceFromVersion(5))):
+            groupUrn = "urn:cts:" + group.get("projid")
+            group.set("urn", groupUrn)
+            group.set("tiid", InventoryName)
+
+            for work in group.findall("{0}work".format(getNamespaceFromVersion(5))):
+                work.set("groupUrn", groupUrn)
 
         ET = ElementTree(root)
         ET.write(path, encoding="utf-8")
 
-        return root.findall("{0}textgroup".format(getNamespaceFromVersion(5)))
+        return self.xml
 
     def reload(self):
         """ Reload all children of Inventory
@@ -210,6 +208,12 @@ class Inventory(object):
         """
 
         self.xml = xmlParsing(self.xml)
+        self.namespace = namespace(self.xml)
+
+        if self.namespace == "http://chs.harvard.edu/xmlns/cts3/ti":
+            self.version = 3
+        else:
+            self.version = 5
 
     def _retrieveTextGroup(self):
         for group in self.xml.findall("{0}textgroup".format(getNamespaceFromVersion(self.version))):
