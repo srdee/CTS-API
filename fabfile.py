@@ -246,7 +246,10 @@ def start_db():
 @task
 def convert_cts3():
     if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+        _init(retrieve_init=True)
+    i = 0
     for corpus in env.corpora:
         for resource in corpus.resources:
-            print(resource.inventory.convert())
+            if resource.inventory.convert() is not None:
+                i += 1
+                print ("{0} inventory converted".format(i))

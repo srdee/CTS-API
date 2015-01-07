@@ -190,7 +190,21 @@ class Inventory(object):
             group.set("tiid", InventoryName)
 
             for work in group.findall("{0}work".format(getNamespaceFromVersion(5))):
+                workUrn = groupUrn + "." + work.get("projid").split(":")[-1]
                 work.set("groupUrn", groupUrn)
+                work.set("urn", workUrn)
+
+                for textType in ["edition", "translation"]:
+                    texts = work.findall("{0}{1}".format(getNamespaceFromVersion(5), textType))
+                    i = 0
+                    for text in texts:
+                        text.set("workUrn", workUrn)
+                        text.set("urn", workUrn + "." + text.get("projid").split(":")[-1])
+                        if len(texts) == 1:
+                            text.set("default", "true")
+                        elif i == len(texts) - 1:
+                            text.set("default", "true")
+                        i += 1
 
         ET = ElementTree(root)
         ET.write(path, encoding="utf-8")
