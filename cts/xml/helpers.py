@@ -8,6 +8,8 @@ import os.path
 
 entities = re.compile("(\&[a-zA-Z0-9\.]+\;)")
 ns = re.compile('\{(.*)\}')
+cts5ns = "{http://chs.harvard.edu/xmlns/cts}"
+cts3ns = "{http://chs.harvard.edu/xmlns/cts3/ti}"
 
 
 def removeEntities(path):
@@ -62,5 +64,5 @@ def getNamespaceFromVersion(version=5):
     :rtype: str or unicode
     """
     if version == 3:
-        return "{http://chs.harvard.edu/xmlns/cts3/ti}"
-    return "{http://chs.harvard.edu/xmlns/cts}"
+        return cts3ns
+    return cts5ns

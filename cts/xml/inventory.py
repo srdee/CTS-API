@@ -1,9 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from .helpers import xmlParsing, namespace, getNamespaceFromVersion
+from .helpers import xmlParsing, namespace, getNamespaceFromVersion, cts5ns, cts3ns
 from .errors import *
 from .texts import *
+from xml.etree.ElementTree import ElementTree
 
 
 class Work(object):
@@ -165,10 +166,38 @@ class Inventory(object):
 
         self._retrieveTextGroup()
 
-    def convert(self):
+    def convert(self, path=None):
         """ Converts CTS3 Inventory to CTS5
+
+        :param path: The path to the Inventory.xml file
+        :type path: str or unicode
         """
-        pass
+        if path is not None:
+            path = path
+        elif self.path is not None:
+            path = self.path
+        else:
+            raise AttributeError("Path of the Inventory is inexistant")
+
+        root = self.xml
+
+        #First, we fix TextInventory
+        root.tag = "{0}TextInventory".format(cts5ns)
+        InventoryName = path.split("/")[-1].replace(".xml", "")
+        root.set("tiid", InventoryName)
+
+        self.xml = root
+
+        for node in root.iter():
+            node.tag = node.tag.replace(cts3ns, cts5ns)
+
+        for group in root.findall("{0}textgroup".format(getNamespaceFromVersion(self.version))):
+            group.tag = "{0}textgroup".format(cts5ns)
+
+        ET = ElementTree(root)
+        ET.write(path, encoding="utf-8")
+
+        return root.findall("{0}textgroup".format(getNamespaceFromVersion(5)))
 
     def reload(self):
         """ Reload all children of Inventory

@@ -155,7 +155,9 @@ def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
     if no_color is not False:
         no_color = bool(strtobool(str(no_color)))
 
-    _init()
+    if not hasattr(env, "db"):
+        _init(retrieve_init=False)
+
     results = []
 
     for corpus in env.corpora:
@@ -239,3 +241,12 @@ def stop_db():
 def start_db():
     _init(retrieve_init=False)
     db_start()
+
+
+@task
+def convert_cts3():
+    if not hasattr(env, "db"):
+        _init(retrieve_init=False)
+    for corpus in env.corpora:
+        for resource in corpus.resources:
+            print(resource.inventory.convert())
