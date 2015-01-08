@@ -13,6 +13,7 @@ cts3ns = "{http://chs.harvard.edu/xmlns/cts3/ti}"
 
 
 def fixup_element_prefixes(elem, uri_map, memo):
+    """ http://effbot.org/zone/element-namespaces.htm """
     def fixup(name):
         try:
             return memo[name]
@@ -37,6 +38,7 @@ def fixup_element_prefixes(elem, uri_map, memo):
 
 
 def set_prefixes(elem, prefix_map):
+    """ http://effbot.org/zone/element-namespaces.htm """
     # check if this is a tree wrapper
     if not ElementTree.iselement(elem):
         elem = elem.getroot()
