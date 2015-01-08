@@ -468,7 +468,7 @@ declare function ctsx:getValidUrns(
 
   return
     ctsx:_getUrns(
-      $doc || $scope,
+      util:eval("$doc" || $scope),
       $cts/versionUrn || ":",
       "",
       $steps,
