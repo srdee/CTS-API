@@ -12,6 +12,47 @@ cts5ns = "{http://chs.harvard.edu/xmlns/cts}"
 cts3ns = "{http://chs.harvard.edu/xmlns/cts3/ti}"
 
 
+def fixup_element_prefixes(elem, uri_map, memo):
+    def fixup(name):
+        try:
+            return memo[name]
+        except KeyError:
+            if name[0] != "{":
+                return
+            uri, tag = name[1:].split("}")
+            if uri in uri_map:
+                new_name = uri_map[uri] + ":" + tag
+                memo[name] = new_name
+                return new_name
+    # fix element name
+    name = fixup(elem.tag)
+    if name:
+        elem.tag = name
+    # fix attribute names
+    for key, value in elem.items():
+        name = fixup(key)
+        if name:
+            elem.set(name, value)
+            del elem.attrib[key]
+
+
+def set_prefixes(elem, prefix_map):
+    # check if this is a tree wrapper
+    if not ElementTree.iselement(elem):
+        elem = elem.getroot()
+
+    # build uri map and add to root element
+    uri_map = {}
+    for prefix, uri in prefix_map.items():
+        uri_map[uri] = prefix
+        elem.set("xmlns:" + prefix, uri)
+
+    # fixup all elements in the tree
+    memo = {}
+    for elem in elem.getiterator():
+        fixup_element_prefixes(elem, uri_map, memo)
+
+
 def removeEntities(path):
     """ Open a file, remove its entities and send back its content
 

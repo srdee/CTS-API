@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from .helpers import xmlParsing, namespace, getNamespaceFromVersion, cts5ns, cts3ns
+from .helpers import xmlParsing, namespace, getNamespaceFromVersion, cts5ns, cts3ns, set_prefixes
 from .errors import *
 from .texts import *
 from xml.etree.ElementTree import ElementTree
@@ -176,6 +176,9 @@ class Inventory(object):
         :returns: XML of Inventory
         :rtype: Element
         """
+        if self.version == 5:
+            return self.xml
+
         if path is not None:
             path = path
         elif self.path is not None:
@@ -184,6 +187,8 @@ class Inventory(object):
             raise AttributeError("Path of the Inventory is inexistant")
 
         root = self.xml
+        root.set("xmlns:ti", cts5ns.replace("{", "").replace("}", ""))
+        root.set("xmlns:dc", "http://purl.org/dc/elements/1.1")
 
         #First, we fix TextInventory
         root.tag = "{0}TextInventory".format(cts5ns)
@@ -194,6 +199,11 @@ class Inventory(object):
 
         for node in root.iter():
             node.tag = node.tag.replace(cts3ns, cts5ns)
+
+        set_prefixes(root, {
+            "ti": cts5ns.replace("{", "").replace("}", ""),
+            "dc": "http://purl.org/dc/elements/1.1"
+        })
 
         for group in root.findall("{0}textgroup".format(getNamespaceFromVersion(5))):
             groupUrn = "urn:cts:" + group.get("projid")
