@@ -184,7 +184,12 @@ def deploy():
     """
     db_setup()
     db_start()
-    db_stop()
+    print("Pushing CTS Texts")
+    push_cts()
+    print("Pushing XQuery")
+    push_xq()
+    print("Pushing Inventory")
+    push_inv()
 
 
 @task

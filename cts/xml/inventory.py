@@ -166,11 +166,15 @@ class Inventory(object):
 
         self._retrieveTextGroup()
 
-    def convert(self, path=None):
+    def convert(self, path=None, update=True):
         """ Converts CTS3 Inventory to CTS5
 
         :param path: The path to the Inventory.xml file
         :type path: str or unicode
+        :param update: Overwrite on XML file
+        :type update: boolean
+        :returns: XML of Inventory
+        :rtype: Element
         """
         if path is not None:
             path = path
@@ -213,8 +217,9 @@ class Inventory(object):
                             text.set("default", "true")
                         i += 1
 
-        ET = ElementTree(root)
-        ET.write(path, encoding="utf-8")
+        if update is True:
+            ET = ElementTree(root)
+            ET.write(path, encoding="utf-8")
 
         return self.xml
 

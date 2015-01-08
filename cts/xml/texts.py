@@ -65,7 +65,8 @@ class Citation(object):
             return Citation(
                 xml=children,
                 namespaces=self.namespaces,
-                strict=self.strict
+                strict=self.strict,
+                version=self.version
             )
         return None
 

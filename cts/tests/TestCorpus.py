@@ -7,6 +7,8 @@ from nose.tools import assert_is_instance
 import cts.xml.inventory
 import cts.xml.texts
 import cts.resources
+import xml.etree.ElementTree as ET
+
 
 basePath = os.path.dirname(os.path.abspath(__file__)) + "/test_files"
 test_inventory_path = basePath + "/test_inventory.xml"
@@ -98,7 +100,10 @@ def TestEditionDocumentCitation():
     doc = inv_correct.textGroups[0].works[0].editions[0].document
     assert doc.path == basePath + "/tlg0003.tlg001.perseus-grc2.xml"  # Because no rewriting_rules
     assert_is_instance(doc.citation, cts.xml.texts.Citation)
+    assert doc.citation.version == 3, " Version not found "
     results, errors = doc.testCitation()
+    print(errors)
+    print(ET.tostring(doc.citation.children.xml))
     assert results == [True, True, False], "Results for Translations document citation test should be successful except level 3"
 
 
