@@ -1,14 +1,15 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from .helpers import xmlParsing
+from .helpers import xmlParsing, namespace, getNamespaceFromVersion, cts5ns, cts3ns
 from .errors import *
 from .texts import *
+from xml.etree.ElementTree import ElementTree
 
 
 class Work(object):
     """ Represents an opus/a Work inside a WorkGroup inside a CTS Inventory """
-    def __init__(self, xml, rewriting_rules={}, strict=False):
+    def __init__(self, xml, rewriting_rules={}, strict=False, version=5):
         """ Initiate the object
 
         :param xml: A string representing the TextGroup in XML or a ElementTree object
@@ -17,13 +18,20 @@ class Work(object):
         :type rewriting_rules: dict
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
         :type strict: boolean
+        :param version: Indicate the version of CTS used
+        :type version: int
         """
         self.strict = strict
         self.rewriting_rules = rewriting_rules
 
+        self.version = version
+
         self.xml = xmlParsing(xml)
 
-        self.id = xml.get("projid")
+        if self.version == 3:
+            self.id = self.xml.get("projid")
+        else:
+            self.id = self.xml.get("urn")
 
         self.titles = {}
         self._retrieveTitles()
@@ -44,7 +52,7 @@ class Work(object):
 
     def _retrieveTitles(self):
         """ Retrieve titles from the xml """
-        for title in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}title"):
+        for title in self.xml.findall("{0}title".format(getNamespaceFromVersion(self.version))):
             self._title_lang = title.get("{http://www.w3.org/XML/1998/namespace}lang")
             self.titles[self._title_lang] = title.text
 
@@ -73,17 +81,17 @@ class Work(object):
 
     def _retrieveEditions(self):
         """ Retrieve and create editions based on self.xml """
-        for edition in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}edition"):
-            self.editions.append(Edition(edition, rewriting_rules=self.rewriting_rules, strict=False))
+        for edition in self.xml.findall("{0}edition".format(getNamespaceFromVersion(self.version))):
+            self.editions.append(Edition(edition, rewriting_rules=self.rewriting_rules, strict=False, version=self.version))
 
     def _retrieveTranslations(self):
-        for translation in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}translation"):
-            self.translations.append(Translation(translation, rewriting_rules=self.rewriting_rules, strict=False))
+        for translation in self.xml.findall("{0}translation".format(getNamespaceFromVersion(self.version))):
+            self.translations.append(Translation(translation, rewriting_rules=self.rewriting_rules, strict=False, version=self.version))
 
 
 class TextGroup(object):
     """ Represents a TextGroup in a CTS Inventory """
-    def __init__(self, xml, rewriting_rules={}, strict=False):
+    def __init__(self, xml, rewriting_rules={}, strict=False, version=5):
         """ Initiate the object
 
         :param xml: A string representing the TextGroup in XML or a ElementTree object
@@ -92,14 +100,22 @@ class TextGroup(object):
         :type rewriting_rules: dict
         :param strict: Indicate wether we should raise Exceptions on CTS compliancy failure
         :type strict: boolean
+        :param version: Indicate the version of CTS used
+        :type version: int
         """
         self.strict = strict
         self.rewriting_rules = rewriting_rules
 
         self.xml = xmlParsing(xml)
 
-        self.id = xml.get("projid")
-        self.name = self.xml.find("{http://chs.harvard.edu/xmlns/cts3/ti}groupname").text
+        self.version = version
+
+        if self.version == 3:
+            self.id = self.xml.get("projid")
+        else:
+            self.id = self.xml.get("urn")
+
+        self.name = self.xml.find("{0}groupname".format(getNamespaceFromVersion(self.version))).text
 
         self.works = []
         self._retrieveWorks()
@@ -121,8 +137,8 @@ class TextGroup(object):
         return self.name
 
     def _retrieveWorks(self):
-        for work in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}work"):
-            self.works.append(Work(work, rewriting_rules=self.rewriting_rules))
+        for work in self.xml.findall("{0}work".format(getNamespaceFromVersion(self.version))):
+            self.works.append(Work(work, rewriting_rules=self.rewriting_rules, version=self.version))
 
 
 class Inventory(object):
@@ -144,7 +160,72 @@ class Inventory(object):
         if os.path.exists(xml):
             self.path = xml        # Quick fix, should find a way to check if string is a path
         self.xml = xml
+
         self.textGroups = list()
+        self._load()
+
+        self._retrieveTextGroup()
+
+    def convert(self, path=None, update=True):
+        """ Converts CTS3 Inventory to CTS5
+
+        :param path: The path to the Inventory.xml file
+        :type path: str or unicode
+        :param update: Overwrite on XML file
+        :type update: boolean
+        :returns: XML of Inventory
+        :rtype: Element
+        """
+        if path is not None:
+            path = path
+        elif self.path is not None:
+            path = self.path
+        else:
+            raise AttributeError("Path of the Inventory is inexistant")
+
+        root = self.xml
+
+        #First, we fix TextInventory
+        root.tag = "{0}TextInventory".format(cts5ns)
+        InventoryName = path.split("/")[-1].replace(".xml", "")
+        root.set("tiid", InventoryName)
+
+        self.xml = root
+
+        for node in root.iter():
+            node.tag = node.tag.replace(cts3ns, cts5ns)
+
+        for group in root.findall("{0}textgroup".format(getNamespaceFromVersion(5))):
+            groupUrn = "urn:cts:" + group.get("projid")
+            group.set("urn", groupUrn)
+            group.set("tiid", InventoryName)
+
+            for work in group.findall("{0}work".format(getNamespaceFromVersion(5))):
+                workUrn = groupUrn + "." + work.get("projid").split(":")[-1]
+                work.set("groupUrn", groupUrn)
+                work.set("urn", workUrn)
+
+                for textType in ["edition", "translation"]:
+                    texts = work.findall("{0}{1}".format(getNamespaceFromVersion(5), textType))
+                    i = 0
+                    for text in texts:
+                        text.set("workUrn", workUrn)
+                        text.set("urn", workUrn + "." + text.get("projid").split(":")[-1])
+                        if len(texts) == 1:
+                            text.set("default", "true")
+                        elif i == len(texts) - 1:
+                            text.set("default", "true")
+                        i += 1
+
+        if update is True:
+            ET = ElementTree(root)
+            ET.write(path, encoding="utf-8")
+
+        return self.xml
+
+    def reload(self):
+        """ Reload all children of Inventory
+        """
         self._load()
         self._retrieveTextGroup()
 
@@ -153,10 +234,18 @@ class Inventory(object):
         """
 
         self.xml = xmlParsing(self.xml)
+        self.namespace = namespace(self.xml)
+
+        if self.namespace == "http://chs.harvard.edu/xmlns/cts3/ti":
+            self.version = 3
+            self.id = self.path.split("/")[-1].replace(".xml", "")
+        else:
+            self.version = 5
+            self.id = self.xml.get("tiid")
 
     def _retrieveTextGroup(self):
-        for group in self.xml.findall("{http://chs.harvard.edu/xmlns/cts3/ti}textgroup"):
-            self.textGroups.append(TextGroup(xml=group, rewriting_rules=self.rewriting_rules))
+        for group in self.xml.findall("{0}textgroup".format(getNamespaceFromVersion(self.version))):
+            self.textGroups.append(TextGroup(xml=group, rewriting_rules=self.rewriting_rules, version=self.version))
         return self.textGroups
 
     def getTexts(self, instanceOf=[Edition, Translation]):

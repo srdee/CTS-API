@@ -128,7 +128,7 @@ declare function ctsx:parseUrn($a_inv as xs:string, $a_urn as xs:string)
     let $part2 := $passageComponents[2]
     let $part2 := if (fn:empty($part2)) then $part1 else $part2
 
-    let $namespaceUrn := fn:string-join($components[1 to 3], ":")
+    let $namespaceUrn := fn:string-join($components[1,2,3], ":")
     let $groupUrn := $namespaceUrn || ":" || $textgroup
     let $workUrn := $groupUrn || "." || $work
     let $cat := ctsx:getCapabilities($a_inv, $groupUrn, $workUrn)
@@ -333,7 +333,7 @@ declare function ctsx:getCapabilities($a_inv)
 };
 declare function ctsx:getCapabilities($a_inv, $a_groupUrn, $a_workUrn)
 {
-  let $ti := collection('/db/repository/inventory')/ti:TextInventory[@tiid = $a_inv]
+  let $ti := (/ti:TextInventory[@tiid = $a_inv])[1]
   let $groups :=
     (: specified work :)
     if (fn:exists($a_groupUrn) and fn:exists($a_workUrn))
@@ -404,6 +404,7 @@ declare function ctsx:getValidReff($a_inv, $a_urn) as element(CTS:reply)
 {
   let $cts := ctsx:parseUrn($a_inv, $a_urn)
   let $entry := ctsx:getCatalogEntry($cts)
+  
   let $nparts := fn:count($cts/passageParts/rangePart[1]/part)
   return
     ctsx:getValidReff(
@@ -981,13 +982,13 @@ declare function ctsx:getCatalogEntry($a_cts) as node()*
 {
     console:log(("cts", $a_cts, "end")),
   let $version :=
-    /(ti:edition|ti:translation)
+    //(ti:edition|ti:translation)
       [@workUrn eq $a_cts/workUrn]
       [@urn eq $a_cts/versionUrn]
 
   let $_ :=
     if (fn:empty($version))
-    then fn:error(xs:QName("BAD-URN"), "Version not found: " || $a_cts/urn)
+    then fn:error(xs:QName("BAD-URN"), "Version not found: " || $a_cts/versionUrn)
     else ()
 
   return $version

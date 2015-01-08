@@ -110,9 +110,10 @@ def TestChildrenRetriever():
         """,
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
-        }
+        },
+        version=3
     )
-    assert_is_instance(c.children, cts.xml.texts.Citation)
+    assert_is_instance(c.children, cts.xml.texts.Citation), """ Citation using CTS3 have children founds """
 
 
 def TestReplication():

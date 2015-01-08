@@ -7,6 +7,9 @@ import re
 import os.path
 
 entities = re.compile("(\&[a-zA-Z0-9\.]+\;)")
+ns = re.compile('\{(.*)\}')
+cts5ns = "{http://chs.harvard.edu/xmlns/cts}"
+cts3ns = "{http://chs.harvard.edu/xmlns/cts3/ti}"
 
 
 def removeEntities(path):
@@ -44,3 +47,22 @@ def xmlParsing(xml=None):
     else:
         msg = "XML given is no XML \n {0}".format(xml)
         raise ValueError(msg)
+
+
+def namespace(element):
+    """ Return the element namespace """
+    m = ns.match(element.tag)
+    return m.group(1) if m else ''
+
+
+def getNamespaceFromVersion(version=5):
+    """ Returns the namespace according to the CTS version
+
+    :param version: Indicate the version of CTS used
+    :type version: int
+    :returns: namespace
+    :rtype: str or unicode
+    """
+    if version == 3:
+        return cts3ns
+    return cts5ns
