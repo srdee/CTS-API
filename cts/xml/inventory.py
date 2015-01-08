@@ -28,7 +28,10 @@ class Work(object):
 
         self.xml = xmlParsing(xml)
 
-        self.id = xml.get("projid")
+        if self.version == 3:
+            self.id = self.xml.get("projid")
+        else:
+            self.id = self.xml.get("urn")
 
         self.titles = {}
         self._retrieveTitles()
@@ -107,7 +110,11 @@ class TextGroup(object):
 
         self.version = version
 
-        self.id = xml.get("projid")
+        if self.version == 3:
+            self.id = self.xml.get("projid")
+        else:
+            self.id = self.xml.get("urn")
+
         self.name = self.xml.find("{0}groupname".format(getNamespaceFromVersion(self.version))).text
 
         self.works = []
@@ -226,8 +233,10 @@ class Inventory(object):
 
         if self.namespace == "http://chs.harvard.edu/xmlns/cts3/ti":
             self.version = 3
+            self.id = self.path.split("/")[-1].replace(".xml", "")
         else:
             self.version = 5
+            self.id = self.xml.get("tiid")
 
     def _retrieveTextGroup(self):
         for group in self.xml.findall("{0}textgroup".format(getNamespaceFromVersion(self.version))):

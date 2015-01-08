@@ -378,7 +378,11 @@ class Text(object):
         self.rewriting_rules = rewriting_rules
         self.strict = strict
 
-        self.id = xml.get("projid")
+        if self.version == 3:
+            self.id = self.xml.get("projid")
+        else:
+            self.id = self.xml.get("urn")
+
         self.collection = self.id.split(":")[0]
         self.titles = {}
         self._retrieveTitles()
