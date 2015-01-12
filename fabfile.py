@@ -238,12 +238,14 @@ def push_inv():
 
 @task
 def stop_db():
+    """ Stop the database """
     _init(retrieve_init=False)
     db_stop()
 
 
 @task
 def start_db():
+    """ Start the database """
     _init(retrieve_init=False)
     db_start()
 
@@ -262,7 +264,7 @@ def convert_cts3():
 
 
 @task
-def backup(cts=5):
+def db_backup(cts=5):
     """ Backup dbs """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
