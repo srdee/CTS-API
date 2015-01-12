@@ -27,20 +27,30 @@ This CTS-API deployement uses a json file for its configuration.
 		}
 	},
 	"repositories" : [
-			"method" : "git",  // Defines which tool to use to retrieve the data. Available : git, local
-			"path" : "https://github.com/PerseusDL/canonical.git", // For git, a URL, for local, an absolute path
-			"resources" : [
-				{
-					"name" : "canonical_example" //Name of the collection, optional
-					"texts" : "#/canonical/CTS_XML_TEI/perseus",  // The folder in which fab will find the texts
-					"inventory" : "#/canonical/CTS_XML_TextInventory/allcts.xml" // The file which holds CTS informations
-					"rewriting_rules" : { // Pairs of key, value where key has to be overriden by value in Inventory pointer
-						"/db/repository/" : "#/canonical/CTS_XML_TEI/perseus/"
-					}
+		"method" : "git",  // Defines which tool to use to retrieve the data. Available : git, local
+		"path" : "https://github.com/PerseusDL/canonical.git", // For git, a URL, for local, an absolute path
+		"resources" : [
+			{
+				"name" : "canonical_example" //Name of the collection, optional
+				"texts" : "#/canonical/CTS_XML_TEI/perseus",  // The folder in which fab will find the texts
+				"inventory" : "#/canonical/CTS_XML_TextInventory/allcts.xml" // The file which holds CTS informations
+				"rewriting_rules" : { // Pairs of key, value where key has to be overriden by value in Inventory pointer
+					"/db/repository/" : "#/canonical/CTS_XML_TEI/perseus/"
 				}
-			]
-
+			}
 		]
+	],
+	"hosts" : {
+		"hostname" : {
+			"transit_dir" : "/path/to/somewhere/to/upload/some/files",
+			"db" : "/path/to/db/software/on/distant/machine",
+			"data" : "/path/to/db/data/software",
+			"user" : { // For database
+				"name" : "admin",
+				"password" : "password"
+			}
+		}
+	}
 }
 ```
 
