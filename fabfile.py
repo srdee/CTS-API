@@ -250,6 +250,7 @@ def start_db():
 
 @task
 def convert_cts3():
+    """ Convert CTS3 inventory files to CTS5 Inventory files """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
     i = 0
@@ -258,3 +259,11 @@ def convert_cts3():
             if resource.inventory.convert() is not None:
                 i += 1
                 print ("{0} inventory converted".format(i))
+
+
+@task
+def backup(cts=5):
+    """ Backup dbs """
+    if not hasattr(env, "db"):
+        _init(retrieve_init=False)
+    print(env.db.dump(fn=local, cts=cts, output=env.build_dir+"/{md5}.zip"))

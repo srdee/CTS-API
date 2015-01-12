@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import hashlib
 
 from ..db import DB
 from .. import shell
@@ -95,3 +96,32 @@ class ExistDB(DB):
             xqs = [(xq, "repository") for xq in xqs]
 
         return self.put(texts=xqs)
+
+    def dump(self, fn, cts=5, output="./{md5}.zip"):
+        if cts == 3:
+            dbs = ["/db/xq", "/db/repository"]
+        else:
+            dbs = ["/db/repository"]
+
+        cmds = list()
+        backedUp = list()
+
+        for db in dbs:
+            outputFile = output.format(md5=hashlib.md5(db).hexdigest())
+            backedUp.append((outputFile, db))
+            password = ""
+            if self.user.password:
+                password = " -p {password} ".format(password=self.user.password)
+
+            cmds.append(
+                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -b {db} -d {output}".format(
+                    directory=self.directory,
+                    password=password,
+                    username=self.user.name,
+                    db=db,
+                    output=outputFile))
+            )
+
+        shell.run(cmds=cmds, host_fn=fn)    # We run the commands using function given
+
+        return backedUp

@@ -99,6 +99,20 @@ class DB(object):
         """
         return self.file.get()
 
+    def dump(self, fn, cts=5, output="./output.zip"):
+        """ Dump the database
+
+        :param fn: Function to run commands
+        :type fn: function
+        :param cts: Version of CTS used
+        :type cts: int
+        :param output: Path of the backup to be saved
+        :type output: str or unicode
+        :returns: List of tuple (dumped files' path , collection name)
+        :rtype: list(str|unicode,str|unicode)
+        """
+        raise NotImplemented("This function is not implemented in this class")
+
     def put(self, texts):
         """ Push XML file(s) into the XML database
 
