@@ -32,6 +32,20 @@ TIMESTAMP_FORMAT = "%Y%m%d%H%M%S"
 
 
 # environments
+
+def _define_env(localhost=False):
+    """ Define the function to be used
+
+    :param env: a string representing an environment
+    :type env: str or unicode
+    :returns: function to use for shell.run(host_fn)
+    :rtype: fn
+    """
+    if bool(strtobool(str(localhost))) is True:
+        return local
+    return run
+
+
 def _get_config():
     """ Loads the JSON file data into Fabric """
     with open("config.json") as f:
@@ -119,19 +133,19 @@ def _get_build_dir():
     return env.build_dir
 
 
-def db_setup():
+def _db_setup(localhost=False):
     """ Setup the database """
-    shell.run(env.db.setup(), local)
+    shell.run(env.db.setup(), _define_env(localhost))
 
 
-def db_stop():
+def _db_stop(localhost=False):
     """ Stop the database """
-    shell.run(env.db.stop(), local)
+    shell.run(env.db.stop(), _define_env(localhost))
 
 
-def db_start():
+def _db_start(localhost=False):
     """ Start the database """
-    shell.run(env.db.start(), local)
+    shell.run(env.db.start(), _define_env(localhost))
 
 
 def test():
@@ -172,24 +186,29 @@ def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
 
 
 @task
-def deploy():
-    """ Build a clean local version and deploy. """
-    #_check_git_version()
+def deploy(convert=True):
+    """ Build a clean local version and deploy.
+
+    :param convert: Force conversion of inventory
+    """
     _init()
     print("Downloading DB software")
     env.db.retrieve()
-    """
-    for corpus in env.corpora:
-        corpus.retrieve()
-    """
-    db_setup()
-    db_start()
-    print("Pushing CTS Texts")
-    push_cts()
-    print("Pushing XQuery")
-    push_xq()
-    print("Pushing Inventory")
-    push_inv()
+
+    if convert is not True:
+        convert = bool(strtobool(str(convert)))
+
+    if convert is True:
+        convert_cts3()
+
+    print ("Installing locally")
+    _db_setup(localhost=True)
+    _db_start(localhost=True)
+    push_cts(localhost=True, start=False)
+    push_xq(localhost=True, start=False)
+    push_inv(localhost=True, start=False)
+    print("Dumping DB")
+    db_backup(cts=5, localhost=True)
 
 
 @task
@@ -199,55 +218,61 @@ def clean():
 
 
 @task
-def push_cts():
+def push_cts(localhost=True, start=True):
     """ Push Corpora to the Database """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
-    db_start()
+
+    if start is True:
+        db_start(localhost=localhost)
 
     documents = []
     for corpus in env.corpora:
         for resource in corpus.resources:
             documents = documents + resource.getTexts(if_exists=True)
 
-    shell.run(env.db.put(documents), local)
+    shell.run(env.db.put(documents), _define_env(localhost))
 
 
 @task
-def push_xq(cts=5):
+def push_xq(cts=5, localhost=True, start=True):
     """ Push XQueries to the Database """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
-    db_start()
 
-    shell.run(env.db.feedXQuery(version=int(cts)), local)
+    if start is True:
+        db_start(localhost=localhost)
+
+    shell.run(env.db.feedXQuery(version=int(cts)), _define_env(localhost))
 
 
 @task
-def push_inv():
+def push_inv(localhost=True, start=True):
     """ Push inventory to the Database """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
-    db_start()
+
+    if start is True:
+        db_start(localhost=localhost)
 
     for corpus in env.corpora:
         for resource in corpus.resources:
             if resource.inventory.path is not None:
-                shell.run(env.db.put((resource.inventory.path, "repository/inventory")), local)
+                shell.run(env.db.put((resource.inventory.path, "repository/inventory")), _define_env(localhost))
 
 
 @task
-def stop_db():
+def db_stop(localhost=False):
     """ Stop the database """
     _init(retrieve_init=False)
-    db_stop()
+    _db_stop(localhost=localhost)
 
 
 @task
-def start_db():
+def db_start(localhost=False):
     """ Start the database """
     _init(retrieve_init=False)
-    db_start()
+    _db_start(localhost=localhost)
 
 
 @task
@@ -264,16 +289,19 @@ def convert_cts3():
 
 
 @task
-def db_backup(cts=5):
+def db_backup(cts=5, localhost=False):
     """ Backup dbs """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
-    print(env.db.dump(fn=local, cts=cts, output=env.build_dir+"/{md5}.zip"))
+
+    env.db.dump(fn=_define_env(localhost), cts=cts, output=env.build_dir+"/{md5}.zip")
+    print("Done.")
 
 
 @task
-def db_restore(cts=5):
+def db_restore(cts=5, localhost=False):
     """ Backup dbs """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
-    print(env.db.restore(fn=local, cts=cts, directory=env.build_dir))
+    env.db.restore(fn=_define_env(localhost), cts=cts, directory=env.build_dir)
+    print("Done.")
