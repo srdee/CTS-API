@@ -269,3 +269,11 @@ def db_backup(cts=5):
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
     print(env.db.dump(fn=local, cts=cts, output=env.build_dir+"/{md5}.zip"))
+
+
+@task
+def db_restore(cts=5):
+    """ Backup dbs """
+    if not hasattr(env, "db"):
+        _init(retrieve_init=False)
+    print(env.db.restore(fn=local, cts=cts, directory=env.build_dir))

@@ -125,3 +125,29 @@ class ExistDB(DB):
         shell.run(cmds=cmds, host_fn=fn)    # We run the commands using function given
 
         return backedUp
+
+    def restore(self, fn, cts=5, directory=""):
+        if cts == 3:
+            dbs = ["/db/xq", "/db/repository"]
+        else:
+            dbs = ["/db/repository"]
+
+        password = ""
+        if self.user.password:
+            password = " -p {password} ".format(password=self.user.password)
+        files = ["{directory}/{md5}.zip".format(directory=directory, md5=hashlib.md5(db).hexdigest()) for db in dbs]
+        cmds = list()
+
+        for f in files:
+            cmds.append(
+                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -r {input}".format(
+                    directory=self.directory,
+                    password=password,
+                    username=self.user.name,
+                    db=db,
+                    input=f))
+            )
+
+        shell.run(cmds=cmds, host_fn=fn)    # We run the commands using function given
+
+        return dbs
