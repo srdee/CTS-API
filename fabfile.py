@@ -22,6 +22,7 @@ from cts.resources import Corpus
 
 # globals
 env.project_name = 'cts-api'
+env.replicate_name = env.project_name + "-replicate"
 env.prod = False
 env.use_ssh_config = True
 env.path = '/opt/webapps/' + env.project_name
@@ -142,19 +143,25 @@ def _get_build_dir():
     return env.build_dir
 
 
-def _db_setup(localhost=False):
+def _db_setup(localhost=False, db=None):
     """ Setup the database """
-    shell.run(env.db.setup(), _define_env(localhost))
+    if db is None:
+        db = env.db
+    shell.run(db.setup(), _define_env(localhost))
 
 
-def _db_stop(localhost=False):
+def _db_stop(localhost=False, db=None):
     """ Stop the database """
-    shell.run(env.db.stop(), _define_env(localhost))
+    if db is None:
+        db = env.db
+    shell.run(db.stop(), _define_env(localhost))
 
 
-def _db_start(localhost=False):
+def _db_start(localhost=False, db=None):
     """ Start the database """
-    shell.run(env.db.start(), _define_env(localhost))
+    if db is None:
+        db = env.db
+    shell.run(db.start(), _define_env(localhost))
 
 
 def test():
@@ -221,6 +228,8 @@ def deploy(convert=True, localhost=False):
     if localhost is False:
         print("Dumping DB")
         backed_up_databases = db_backup(cts=5, localhost=True)
+        #We don't need our DB anymore !
+        _db_stop(localhost=True)
 
         run("mkdir -p {0}".format(env.target["dumps"]))
         run("mkdir -p {0}".format(env.target["db"]))
@@ -229,14 +238,90 @@ def deploy(convert=True, localhost=False):
         #We put the db stuff out there
         version = datetime.now().strftime(TIMESTAMP_FORMAT)
         put(local_path=env.db.file.path, remote_path=env.target["dumps"])
-        env.remote_db = env.db
-        env.remote_db.directory = env.target["db"] + "/" + version + "/"
+
+        remote_user = Credential()
+        remote_user.from_dic(env.target["user"])
+        env.remote_db = cts.software.helper.instantiate(
+            software=env.config["db"]["software"],
+            version=env.config["db"]["version"],
+            method=env.config["db"]["method"],
+            path=env.config["db"]["path"],
+            data_dir=env.target["data"] + "/" + version + "/",
+            target=env.target["dumps"],
+            user=remote_user,
+            port=env.target["port"]["replicate"]
+        )
+
+        env.remote_db.set_directory(env.target["db"] + "/" + version + "/")
         env.remote_db.data_dir = env.target["data"] + "/" + version + "/"
 
-        _db_setup()
+        _db_setup(db=env.remote_db)
+        open_shell()
+
+        #Now we do the config file dance : we update the config locally
+        env.db.set_port(env.target["port"]["replicate"])
+        env.db.update_config()
+
+        #We copy the given config files to remote
+        for path in env.db.get_config_files():
+            put(
+                local_path=env.db.directory + path,
+                remote_path=env.remote_db.directory + path
+            )
 
         for backed_up_database in backed_up_databases:
             put(local_path=backed_up_database[0], remote_path=env.target["dumps"])   # We upload the files on the other end
+
+        with settings(warn_only=True):
+            sudo("/etc/init.d/{project_name} stop".format(
+                project_name=env.replicate_name
+            ))
+            sudo("rm /etc/init.d/{project_name}".format(
+                project_name=env.replicate_name
+            ))
+
+        sudo("ln -s {service_executable} /etc/init.d/{project_name}".format(
+            service_executable=env.remote_db.get_service_file(),
+            project_name=env.replicate_name
+        ))
+        sudo("/etc/init.d/{project_name} start".format(
+            project_name=env.replicate_name
+        ))
+
+        db_restore(db=env.remote_db, source_dir=env.target["dumps"])
+
+        #No we stop old main implementation and start the new one
+        sudo("/etc/init.d/{project_name} stop".format(
+            project_name=env.replicate_name
+        ))
+
+        #We also need to put the right running port
+        env.db.set_port(env.target["port"]["default"])
+        env.db.update_config()
+
+        #We copy the given config files to remote
+        for path in env.db.get_config_files():
+            put(
+                local_path=env.db.directory + path,
+                remote_path=env.remote_db.directory + path
+            )
+
+        with settings(warn_only=True):
+            sudo("/etc/init.d/{project_name} stop".format(
+                project_name=env.project_name
+            ))
+            sudo("rm /etc/init.d/{project_name}".format(
+                project_name=env.project_name
+            ))
+
+        sudo("ln -s {service_executable} /etc/init.d/{project_name}".format(
+            service_executable=env.remote_db.get_service_file(),
+            project_name=env.project_name
+        ))
+        sudo("/etc/init.d/{project_name} start".format(
+            project_name=env.project_name
+        ))
+        clean()
 
 
 @task
@@ -326,11 +411,18 @@ def db_backup(cts=5, localhost=False):
 
 
 @task
-def db_restore(cts=5, localhost=False):
+def db_restore(cts=5, localhost=False, db=None, source_dir=None):
     """ Backup dbs """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
-    env.db.restore(fn=_define_env(localhost), cts=cts, directory=env.build_dir)
+
+    if db is None:
+        db = env.db
+
+    if source_dir is None:
+        source_dir = env.build_dir
+
+    db.restore(fn=_define_env(localhost), cts=cts, directory=source_dir)
     print("Done.")
 
 
@@ -340,3 +432,8 @@ def test_port(port=8888):
         _init(retrieve_init=False)
     env.db.set_port(port)
     env.db.update_config()
+
+
+@task
+def test_run():
+    run("/home/thibault/test-cts-api/database/software/201501131231//bin/startup.sh", pty=False, shell=False, quiet=True)

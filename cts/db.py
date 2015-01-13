@@ -163,3 +163,23 @@ class DB(object):
 
         """
         raise NotImplemented("This function is not implemented in this class")
+
+    def update_config(self):
+        """ Update the config files """
+        raise NotImplemented("This function is not implemented in this subclass")
+
+    def get_config_files(self):
+        """ Returns a list of config file to be uploaded on the server
+
+        :returns: list of config files' paths
+        :rtype: list(str|unicode)
+        """
+        raise NotImplemented("This function is not implemented in this subclass")
+
+    def get_service_file(self):
+        """ Returns path to an executable to run the database as a service
+
+        :returns: path of executable
+        :rtype: str or unicode
+        """
+        raise NotImplemented("This function is not implemented in this subclass")
