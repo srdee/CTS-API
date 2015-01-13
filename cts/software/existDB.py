@@ -3,11 +3,12 @@
 
 import os
 import hashlib
+import xml.etree.ElementTree as ET
+import glob
 
 from ..db import DB
 from .. import shell
-from ..xml.texts import Text
-import glob
+from ..xmls.texts import Text
 
 
 class ExistDB(DB):
@@ -36,13 +37,13 @@ class ExistDB(DB):
         ]
 
     def start(self):
-        return [shell.Helper("{0}/conf/bin/startup.sh ".format(self.directory))]
+        return [shell.Helper("{0}/bin/startup.sh ".format(self.directory))]
 
     def stop(self):
         if self.user.password:
-            return [shell.Command("{0}/conf/bin/shutdown.sh -p {1}".format(self.directory, self.user.password))]
+            return [shell.Command("{0}/bin/shutdown.sh -p {1}".format(self.directory, self.user.password))]
         else:
-            return [shell.Command("{0}/conf/bin/shutdown.sh".format(self.directory))]
+            return [shell.Command("{0}/bin/shutdown.sh".format(self.directory))]
 
     def put(self, texts):
         if isinstance(texts, list):
@@ -53,24 +54,26 @@ class ExistDB(DB):
         elif isinstance(texts, Text):
             return [
                 shell.Command(
-                    "{binPath}bin/client.sh -u {user} -P {password} -m {collection} -p {textPath}".format(
+                    "{binPath}bin/client.sh -u {user} -P {password} -m {collection} -p {textPath} -ouri=xmldb:exist://localhost:{port}/exist/xmlrpc".format(
                         textPath=texts.document.path,
-                        binPath=self.directory+"/conf/",
+                        binPath=self.directory,
                         collection=texts.document.db_dir,
                         user=self.user.name,
-                        password=self.user.password
+                        password=self.user.password,
+                        port=self.port
                     )
                 )
             ]
         else:       # Tuple
             return [
                 shell.Command(
-                    "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath}".format(
+                    "{binPath}bin/client.sh -u {user} -P {password} -m /db/{collection} -p {textPath} -ouri=xmldb:exist://localhost:{port}/exist/xmlrpc".format(
                         textPath=texts[0],
-                        binPath=self.directory+"/conf/",
+                        binPath=self.directory,
                         collection=texts[1],
                         user=self.user.name,
-                        password=self.user.password
+                        password=self.user.password,
+                        port=self.port
                     )
                 )
             ]
@@ -114,7 +117,7 @@ class ExistDB(DB):
                 password = " -p {password} ".format(password=self.user.password)
 
             cmds.append(
-                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -b {db} -d {output} -ouri=xmldb:exist://localhost:{port}/xmlrpc".format(
+                shell.Command("{directory}/bin/backup.sh -u {username} {password} -b {db} -d {output} -ouri=xmldb:exist://localhost:{port}/exist/xmlrpc".format(
                     directory=self.directory,
                     password=password,
                     username=self.user.name,
@@ -141,7 +144,7 @@ class ExistDB(DB):
 
         for f in files:
             cmds.append(
-                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -r {input} -ouri=xmldb:exist://localhost:{port}/xmlrpc".format(
+                shell.Command("{directory}/bin/backup.sh -u {username} {password} -r {input} -ouri=xmldb:exist://localhost:{port}/exist/xmlrpc".format(
                     directory=self.directory,
                     password=password,
                     username=self.user.name,
@@ -153,3 +156,42 @@ class ExistDB(DB):
         shell.run(cmds=cmds, host_fn=fn)    # We run the commands using function given
 
         return dbs
+
+    def jetty_config_xml_attribute(self, xpath, attribute, value):
+        """ Change an xml attribute in jetty's configuration
+
+        :param xpath: Xpath to node
+        :type xpath: str or unicode
+        :param attribute: Attribute to Change
+        :type attribute: str or unicode
+        :param value: New value for attribute
+        :type value: str or int
+        """
+
+        path = self.directory + "/tools/jetty/etc/jetty.xml"
+        tree = ET.parse(path)
+        root = tree.getroot()
+        SystemProperty = root.findall(xpath)[0]
+        SystemProperty.set(attribute, str(value))
+
+        with open(path, mode="w") as f:
+            f.write("""<?xml version="1.0"?>
+<!DOCTYPE Configure PUBLIC "-//Jetty//Configure//EN" "http://www.eclipse.org/jetty/configure.dtd">
+"""+"\n".join(ET.tostring(root, encoding='utf8', method='xml').split("\n")[1:])
+            )
+
+    def update_config(self):
+        """ Update the config files """
+        self.jetty_config_xml_attribute(
+            xpath='./Call[@name="addConnector"]/Arg/New/Set[@name="port"]/SystemProperty',
+            attribute="default",
+            value=self.port
+        )
+
+    def get_config_files(self):
+        """ Returns a list of config file to be uploaded on the server
+
+        :returns: list of config files' paths
+        :rtype: list(str|unicode)
+        """
+        return [self.directory + "/tools/jetty/etc/jetty.xml"]
