@@ -195,14 +195,13 @@ def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
 
 
 @task
-def remote_deploy(convert=True):
+def deploy(convert=True, localhost=False):
     """ Build a clean local version and deploy.
 
     :param convert: Force conversion of inventory
     """
-    _init(retrieve_init=False)
+    _init()
 
-    """
     print("Downloading DB software")
     env.db.retrieve()
 
@@ -218,26 +217,26 @@ def remote_deploy(convert=True):
     push_cts(localhost=True, start=False)
     push_xq(localhost=True, start=False)
     push_inv(localhost=True, start=False)
-    print("Dumping DB")
 
-    backed_up_databases = db_backup(cts=5, localhost=True)
-    """
+    if localhost is False:
+        print("Dumping DB")
+        backed_up_databases = db_backup(cts=5, localhost=True)
 
-    run("mkdir -p {0}".format(env.target["dumps"]))
-    run("mkdir -p {0}".format(env.target["db"]))
-    run("mkdir -p {0}".format(env.target["data"]))
+        run("mkdir -p {0}".format(env.target["dumps"]))
+        run("mkdir -p {0}".format(env.target["db"]))
+        run("mkdir -p {0}".format(env.target["data"]))
 
-    #We put the db stuff out there
-    version = datetime.now().strftime(TIMESTAMP_FORMAT)
-    put(local_path=env.db.file.path, remote_path=env.target["dumps"])
-    env.remote_db = env.db
-    env.remote_db.directory = env.target["db"] + "/" + version + "/"
-    env.remote_db.data_dir = env.target["data"] + "/" + version + "/"
+        #We put the db stuff out there
+        version = datetime.now().strftime(TIMESTAMP_FORMAT)
+        put(local_path=env.db.file.path, remote_path=env.target["dumps"])
+        env.remote_db = env.db
+        env.remote_db.directory = env.target["db"] + "/" + version + "/"
+        env.remote_db.data_dir = env.target["data"] + "/" + version + "/"
 
-    _db_setup()
+        _db_setup()
 
-    for backed_up_database in backed_up_databases:
-        put(local_path=backed_up_database[0], remote_path=env.target["dumps"])   # We upload the files on the other end
+        for backed_up_database in backed_up_databases:
+            put(local_path=backed_up_database[0], remote_path=env.target["dumps"])   # We upload the files on the other end
 
 
 @task
@@ -333,3 +332,11 @@ def db_restore(cts=5, localhost=False):
         _init(retrieve_init=False)
     env.db.restore(fn=_define_env(localhost), cts=cts, directory=env.build_dir)
     print("Done.")
+
+
+@task
+def test_port(port=8888):
+    if not hasattr(env, "db"):
+        _init(retrieve_init=False)
+    env.db.set_port(port)
+    env.db.update_config()

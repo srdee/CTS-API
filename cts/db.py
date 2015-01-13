@@ -56,7 +56,6 @@ class DB(object):
         :type target: unicode or str
 
         """
-        self.port = port
         self.software = software
         self.version = self._version_tuple(version)
         self.method = method
@@ -69,6 +68,7 @@ class DB(object):
         self.data_dir = self.directory + "/data"
         if data_dir is not None:
             self.data_dir = data_dir
+        self.set_port(port)
 
     def _version_tuple(self, version):
         """ Return a tuple representing the version for further tests
