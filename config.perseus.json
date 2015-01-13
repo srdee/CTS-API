@@ -1,0 +1,37 @@
+{
+	"db" : {
+		"software"	: "existDB", 
+		"version"	: "2.2",
+		"method"	: "url",
+		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",
+		"user"		: {
+			"name" : "admin",
+			"password" : "password"
+		}
+	},
+	"repositories" : [
+		{
+			"method" : "git",  
+			"path" : "https://github.com/PerseusDL/canonical.git",
+			"resources" : [
+				{
+					"name" : "canonical_annotsrc",
+					"texts" : "#/canonical/CTS_XML_TEI/perseus", 
+					"inventory" : "#/canonical/CTS_XML_TextInventory/annotsrc.xml",
+					"rewriting_rules" : {
+						"/db/repository/" : "#/canonical/CTS_XML_TEI/perseus/"
+					}
+				},
+				{
+					"name" : "canonical_pilots",
+					"texts" : "#/canonical/CTS_XML_TEI/perseus", 
+					"inventory" : "#/canonical/CTS_XML_TextInventory/pilots.xml",
+					"rewriting_rules" : {
+						"/db/repository/" : "#/canonical/CTS_XML_TEI/perseus/"
+					}
+				}
+			]
+
+		}
+	]
+}

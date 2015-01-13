@@ -48,3 +48,6 @@ This CTS-API deployement uses a json file for its configuration. You have to cre
 ```
 
 **Important note** : in `["repositories"]["resources"]`, you can see that we use the joker `#`. This joker is replaced automatically by the build directory's path. Not using the joker would make opening files not working.
+
+## Examples 
+- [Perseus Digital Library Configuration](../config.perseus.json)
