@@ -42,12 +42,16 @@ This CTS-API deployement uses a json file for its configuration.
 	],
 	"hosts" : {
 		"hostname" : {
-			"transit_dir" : "/path/to/somewhere/to/upload/some/files",
+			"dumps" : "/path/to/somewhere/to/upload/some/files",
 			"db" : "/path/to/db/software/on/distant/machine",
 			"data" : "/path/to/db/data/software",
 			"user" : { // For database
 				"name" : "admin",
 				"password" : "password"
+			},
+			"port" : {
+				"default" : 8080, // Port for the public running database
+				"replicate" : 8090 // Port for the replicated database
 			}
 		}
 	}

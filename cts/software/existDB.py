@@ -12,8 +12,8 @@ import glob
 
 class ExistDB(DB):
     """Implementation of DB for ExistDB"""
-    def __init__(self, software, version, method, path, target="./", user=None):
-        super(ExistDB, self).__init__(software=software, version=version, method=method, path=path, target=target, user=user)
+    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None):
+        super(ExistDB, self).__init__(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user)
 
     def setup(self):
         """ Returns a string to do a cmd """
@@ -21,13 +21,13 @@ class ExistDB(DB):
             shell.Separator(),
             shell.Helper("java -jar {0} -console".format(self.file.path)),
             shell.Request("Select target path [{0}]".format(os.path.abspath(__file__))),
-            shell.Parameter("{0}".format(self.directory + "/conf")),
+            shell.Parameter("{0}".format(self.directory)),
             shell.Request("Data dir:  [webapp/WEB-INF/data]"),
-            shell.Parameter("{0}".format(self.directory + "/data")),
+            shell.Parameter("{0}".format(self.data_dir)),
             shell.Request("Enter password: []"),
-            shell.Parameter("Secured password or simply [password]"),
+            shell.Parameter(self.user.password),
             shell.Request("Enter password: []"),
-            shell.Parameter("Password entered previously"),
+            shell.Parameter(self.user.password),
             shell.Warning("Remind the password you are gonna enter !"),
             shell.Request("Maximum memory in mb: [1024]"),
             shell.Parameter("1024"),

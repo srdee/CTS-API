@@ -39,7 +39,7 @@ class Credential(object):
 
 class DB(object):
     """Abstraction of a DB class"""
-    def __init__(self, software, version, method, path, target="./", user=None):
+    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None):
         """ Initiate the object
 
         :param software: Name of the software
@@ -48,6 +48,8 @@ class DB(object):
         :type version: unicode or str
         :param method: Source type, should be git or url or local
         :type method: unicode or str
+        :param data_dir: Path to data directory for the database
+        :type data_dir: unicode or str
         :param path: Path to which source-downloader needs to query
         :type path: unicode or str
         :param target: Path where file needs to be deployed
@@ -62,6 +64,10 @@ class DB(object):
             self.user = user
         self.file = self._feed_file_instance(method=method, path=path, target=target)
         self.set_directory()
+
+        self.data_dir = self.directory + "/data"
+        if data_dir is not None:
+            self.data_dir = data_dir
 
     def _version_tuple(self, version):
         """ Return a tuple representing the version for further tests

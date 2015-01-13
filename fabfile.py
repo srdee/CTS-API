@@ -6,6 +6,7 @@ Fabric deployment script for the CTS-API
 """
 from __future__ import with_statement
 
+from datetime import datetime
 import os
 import json
 import shutil
@@ -28,10 +29,17 @@ env.user = os.getenv("USER")
 env.git_version = 1.9
 env.build_dir = None
 env.corpora = None
-TIMESTAMP_FORMAT = "%Y%m%d%H%M%S"
+TIMESTAMP_FORMAT = "%Y%m%d%H%M"
 
 
 # environments
+@task
+def set_hosts(host):
+    _get_config()
+    # Update env.hosts instead of calling execute()
+    env.hosts = [host]
+    env.target = env.config["hosts"][host]
+
 
 def _define_env(localhost=False):
     """ Define the function to be used
@@ -99,10 +107,11 @@ def _fill_config(retrieve_init=True):
         version=env.config["db"]["version"],
         method=env.config["db"]["method"],
         path=env.config["db"]["path"],
+        data_dir=env.build_dir + "db/data",
         target=env.build_dir + "/db",
         user=user
     )
-
+    env.db.set_directory(env.build_dir + "db/conf")
     env.corpora = [
         Corpus(
             method=r["method"],
@@ -186,12 +195,14 @@ def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
 
 
 @task
-def deploy(convert=True):
+def remote_deploy(convert=True):
     """ Build a clean local version and deploy.
 
     :param convert: Force conversion of inventory
     """
-    _init()
+    _init(retrieve_init=False)
+
+    """
     print("Downloading DB software")
     env.db.retrieve()
 
@@ -208,7 +219,25 @@ def deploy(convert=True):
     push_xq(localhost=True, start=False)
     push_inv(localhost=True, start=False)
     print("Dumping DB")
-    db_backup(cts=5, localhost=True)
+
+    backed_up_databases = db_backup(cts=5, localhost=True)
+    """
+
+    run("mkdir -p {0}".format(env.target["dumps"]))
+    run("mkdir -p {0}".format(env.target["db"]))
+    run("mkdir -p {0}".format(env.target["data"]))
+
+    #We put the db stuff out there
+    version = datetime.now().strftime(TIMESTAMP_FORMAT)
+    put(local_path=env.db.file.path, remote_path=env.target["dumps"])
+    env.remote_db = env.db
+    env.remote_db.directory = env.target["db"] + "/" + version + "/"
+    env.remote_db.data_dir = env.target["data"] + "/" + version + "/"
+
+    _db_setup()
+
+    for backed_up_database in backed_up_databases:
+        put(local_path=backed_up_database[0], remote_path=env.target["dumps"])   # We upload the files on the other end
 
 
 @task
@@ -294,8 +323,7 @@ def db_backup(cts=5, localhost=False):
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
 
-    env.db.dump(fn=_define_env(localhost), cts=cts, output=env.build_dir+"/{md5}.zip")
-    print("Done.")
+    return env.db.dump(fn=_define_env(localhost), cts=cts, output=env.build_dir+"/{md5}.zip")
 
 
 @task
