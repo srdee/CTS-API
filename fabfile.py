@@ -130,13 +130,6 @@ def _init(retrieve_init=True):
     _fill_config(retrieve_init=retrieve_init)
 
 
-def _check_git_version():
-    """Ensure we have access to git """
-    version_string = local("git --version", capture=True)
-    if version_string.find("git version {0}".format(env.git_version)) == -1:
-        abort("Incorrect git version version: should be at least {0}".format(env.git_version))
-
-
 def _get_build_dir():
     if not env.build_dir:
         env.build_dir = "{0}/build/{1}/".format(os.path.dirname(os.path.abspath(__file__)), "build_dir")
@@ -162,11 +155,6 @@ def _db_start(localhost=False, db=None):
     if db is None:
         db = env.db
     shell.run(db.start(), _define_env(localhost))
-
-
-def test():
-    """ Use the remote testing server """
-    env.hosts = ['cts-test']
 
 
 @task
@@ -205,7 +193,10 @@ def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
 def deploy(convert=True, localhost=False):
     """ Build a clean local version and deploy.
 
-    :param convert: Force conversion of inventory
+    :param convert: Force conversion of CTS3 inventory
+    :param convert: bool
+    :param localhost: Deploy a local version only if set to True
+    :type localhost: bool
     """
     _init()
 
@@ -424,16 +415,3 @@ def db_restore(cts=5, localhost=False, db=None, source_dir=None):
 
     db.restore(fn=_define_env(localhost), cts=cts, directory=source_dir)
     print("Done.")
-
-
-@task
-def test_port(port=8888):
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
-    env.db.set_port(port)
-    env.db.update_config()
-
-
-@task
-def test_run():
-    run("/home/thibault/test-cts-api/database/software/201501131231//bin/startup.sh", pty=False, shell=False, quiet=True)
