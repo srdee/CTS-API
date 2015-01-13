@@ -16,7 +16,7 @@ CTS-API is providing a CTS API toolkit and python abstraction with built-in func
 
 ## Documentation
 - [Commands](doc/Commands.md)
-- [Configuration](doc/Config.md)
+- [Configuration](doc/Configuration.md)
 - [Roadmap](doc/Roadmap.md)
 - [Code base](doc/Code.md)
 
