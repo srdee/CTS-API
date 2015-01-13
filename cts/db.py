@@ -39,7 +39,7 @@ class Credential(object):
 
 class DB(object):
     """Abstraction of a DB class"""
-    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None):
+    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None, port=8080):
         """ Initiate the object
 
         :param software: Name of the software
@@ -56,6 +56,7 @@ class DB(object):
         :type target: unicode or str
 
         """
+        self.port = port
         self.software = software
         self.version = self._version_tuple(version)
         self.method = method
@@ -133,7 +134,7 @@ class DB(object):
     def set_directory(self, directory=None):
         """ Sets the binary directory for the database
 
-        :param directory: The directory of binaries for ExistDB
+        :param directory: The directory of binaries for database
         :type directory: str or unicode
         :returns: Directory path
         :rtype: str or unicode
@@ -142,6 +143,17 @@ class DB(object):
         if directory is None:
             self.directory = self.file.directory
         return self.directory
+
+    def set_port(self, port=8080):
+        """ Sets the running port for the database
+
+        :param port: The port for the database
+        :type port: int
+        :returns: port
+        :rtype: int
+        """
+        self.port = port
+        return self.port
 
     def feedXQuery(self, path=None):
         """ Feed an XQuery collection

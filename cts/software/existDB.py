@@ -12,8 +12,8 @@ import glob
 
 class ExistDB(DB):
     """Implementation of DB for ExistDB"""
-    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None):
-        super(ExistDB, self).__init__(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user)
+    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None, port=8080):
+        super(ExistDB, self).__init__(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user, port=8080)
 
     def setup(self):
         """ Returns a string to do a cmd """
@@ -36,7 +36,7 @@ class ExistDB(DB):
         ]
 
     def start(self):
-        return [shell.Helper("{0}/conf/bin/startup.sh".format(self.directory))]
+        return [shell.Helper("{0}/conf/bin/startup.sh ".format(self.directory))]
 
     def stop(self):
         if self.user.password:
@@ -114,12 +114,13 @@ class ExistDB(DB):
                 password = " -p {password} ".format(password=self.user.password)
 
             cmds.append(
-                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -b {db} -d {output}".format(
+                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -b {db} -d {output} -ouri=xmldb:exist://localhost:{port}/xmlrpc".format(
                     directory=self.directory,
                     password=password,
                     username=self.user.name,
                     db=db,
-                    output=outputFile))
+                    output=outputFile,
+                    port=self.port))
             )
 
         shell.run(cmds=cmds, host_fn=fn)    # We run the commands using function given
@@ -140,12 +141,13 @@ class ExistDB(DB):
 
         for f in files:
             cmds.append(
-                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -r {input}".format(
+                shell.Command("{directory}/conf/bin/backup.sh -u {username} {password} -r {input} -ouri=xmldb:exist://localhost:{port}/xmlrpc".format(
                     directory=self.directory,
                     password=password,
                     username=self.user.name,
                     db=db,
-                    input=f))
+                    input=f,
+                    port=self.port))
             )
 
         shell.run(cmds=cmds, host_fn=fn)    # We run the commands using function given
