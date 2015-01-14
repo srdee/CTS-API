@@ -94,16 +94,16 @@ The database configuration is at the root of the json file. Its key name is `db`
 This configuration will use eXistDB as a database, retrieving it from sourceforge and will use admin:password as credentials.
 
 ```javascript
-	"db" : {
-		"software"	: "existDB", 
-		"version"	: "2.2",
-		"method"	: "url",
-		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",
-		"user"		: {
-			"name" : "admin",
-			"password" : "password"
-		}
+"db" : {
+	"software"	: "existDB", 
+	"version"	: "2.2",
+	"method"	: "url",
+	"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",
+	"user"		: {
+		"name" : "admin",
+		"password" : "password"
 	}
+}
 ```
 ##Repositories
 
@@ -140,20 +140,20 @@ Rewriting rules are a set of equivalencies, where `{key1 : value1, key2 : value2
 This repositories example is a set of 1 repository, which we retrieve through `git`. Inside it, we have one inventory, `allcts.xml` which we gave the identifier `canonical_example`. Its texts are found in the folder `#/CTS_XML_TEI/perseus`, where `#` is a joker to the root of the git repository. When browsing the repository, `/db/repository/end/of/path/file.xml` is rewritten and interpreted as `/git-respository/CTS_XML_TEI/perseus/end/of/path/file.xml` through rewriting rules.
 
 ```javascript
-	"repositories" : [
-		"method" : "git",
-		"path" : "https://github.com/PerseusDL/canonical.git", 
-		"resources" : [
-			{
-				"name" : "canonical_example" 
-				"texts" : "#/CTS_XML_TEI/perseus",
-				"inventory" : "#/CTS_XML_TextInventory/allcts.xml" 
-				"rewriting_rules" : {
-					"/db/repository/" : "#/CTS_XML_TEI/perseus/"
-				}
+"repositories" : [
+	"method" : "git",
+	"path" : "https://github.com/PerseusDL/canonical.git", 
+	"resources" : [
+		{
+			"name" : "canonical_example" 
+			"texts" : "#/CTS_XML_TEI/perseus",
+			"inventory" : "#/CTS_XML_TextInventory/allcts.xml" 
+			"rewriting_rules" : {
+				"/db/repository/" : "#/CTS_XML_TEI/perseus/"
 			}
-		]
-	],
+		}
+	]
+],
 ```
 ##Remote hosts
 
