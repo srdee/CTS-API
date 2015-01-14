@@ -7,7 +7,6 @@ Captains Toolkit configuration
 3. [Database Configuration](#database)
   1. [Introduction](#introduction)
   2. [Software](#database-software)
-  3. [Credentials](#database-credentials)
   4. [Example](#example)
 4. [Repositories Configuration](#repositories)
   1. [Introduction](#introduction-1)
@@ -16,10 +15,10 @@ Captains Toolkit configuration
   4. [Example](#example-1)
 5. [Remote Hosts Configuration](#remote-hosts)
   1. [Introduction](#introduction-2)
-  2. [Credentials](#database-credentials-1)
-  3. [Ports](#ports)
-  4. [Example](#example-2)
+  2. [Ports](#ports)
+  3. [Example](#example-2)
 6. [Retrieval Methods](#retrieval-methods)
+7. [Credentials](#database-credentials)
 
 ##Overview : the configuration file
 This CTS-API deployement uses a json file for its configuration. You have to create a config.json at the root of CTS-API installation
@@ -78,12 +77,33 @@ You need to rename those file to config.json.
 
 ###Introduction
 
+The database configuration is at the root of the json file. Its key name is `db`.
+
 ###Database Software
 
-###Database Credentials
+| Parameter key | Type | Available Values | Description
+|---------------|------|------------------|-------------
+| software      |string|existDB           | The software it will use to run the DB. See [supported database](../README.md#support-informations)
+| version       |string|                  | **Soon to be Deprecated** Version of the software you use
+| method        |string|url,local,git     | The retrieval method to use. See [Retrieval Methods](#retrieval-methods) for more details
+| path          |string|                  | Path from which you need to retrieve your data. Local directory or file, git remote address or url depending on method.
+| user          |json  |                  | See [Credentials](#database-credentials)
 
 ###Example
+This configuration will use eXistDB as a database, retrieving it from sourceforge and will use admin:password as credentials.
 
+```javascript
+	"db" : {
+		"software"	: "existDB", 
+		"version"	: "2.2",
+		"method"	: "url",
+		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",
+		"user"		: {
+			"name" : "admin",
+			"password" : "password"
+		}
+	}
+```
 ##Repositories
 
 ###Introduction

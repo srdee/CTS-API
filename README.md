@@ -9,6 +9,7 @@ Captains Toolkit is providing a CTS API toolkit and python abstraction with buil
 ## Support informations
 **Database**
 - eXistDB 2.2
+- **Not implemented** baseX
 
 **Retrieval tool**
 *Retrieval tools are used to download software or texts.*
