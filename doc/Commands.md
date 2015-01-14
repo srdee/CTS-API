@@ -6,7 +6,7 @@ The commands are in no particular order. If you only want to deploy an instance,
 ##Summary
 1.	[Introduction](#introduction)
 2.	[Tests](#tests)
-2.2 [`test_cts`](#fab-test_cts)
+  1. [`test_cts`](#fab-test_cts)
 3.	[Local Only](#local-only)
 4.	[Remote](#remote)
 
