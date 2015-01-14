@@ -1,6 +1,17 @@
 Captains Toolkit configuration
 ===
 
+##Summary
+1. [Overview](#overview--the-configuration-file)
+2. [Configuration Examples](#examples)
+3. [Database Configuration](#database)
+  1. [Software](#database-software)
+  2. [Credentials](#database-credentials)
+4. [Repositories Configuration](#repositories)
+  1. [Introduction](#introduction)
+5. [Remote Hosts Configuration](#remote-hosts)
+6. [Retrieval Methods](#retrieval-methods)
+
 ##Overview : the configuration file
 This CTS-API deployement uses a json file for its configuration. You have to create a config.json at the root of CTS-API installation
 ```javascript
@@ -49,5 +60,11 @@ This CTS-API deployement uses a json file for its configuration. You have to cre
 
 **Important note** : in `["repositories"]["resources"]`, you can see that we use the joker `#`. This joker is replaced automatically by the build directory's path. Not using the joker would make opening files not working.
 
-## Examples 
+##Examples 
+You need to rename those file to config.json.
 - [Perseus Digital Library Configuration](../config.perseus.json)
+
+###Introduction
+
+
+###Introduction
