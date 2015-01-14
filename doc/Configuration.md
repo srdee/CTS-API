@@ -105,3 +105,10 @@ You need to rename those file to config.json.
 ###Example
 
 ##Retrieval Methods
+There is three retrieval methods available. Retrieval methods defines which service do you want to use to get your database software, text repository, etc. *e.g.* : if you have your texts locally, you might want to just use them instead of downloading it again and again from the web.
+
+- `local` : Retrieve the files from your local computer, given a path such /path/to/my/repository
+- `git` : Clone a repository given its https location or its git remote url address
+- `url` : Download from an url. e.g. `{"method" : "url", "path" : "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar"}` will download eXist-db-setup-2.2.jar
+
+**Good practice :** While using git or download might be a good practice for production, while you set up your configuration file for the first runs, it's good to test it with `local`. This way, if your configuration file is wrong, you don't have to redownload all the files you needed.
