@@ -1,4 +1,4 @@
-Captains Toolkit configuration
+Capitains Toolkit configuration
 ===
 
 ##Summary

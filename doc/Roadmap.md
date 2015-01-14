@@ -1,4 +1,4 @@
-Captains Toolkit Roadmap
+Capitains Toolkit Roadmap
 ===
 
 ## What the deployement steps should include

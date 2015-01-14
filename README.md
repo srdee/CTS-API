@@ -1,10 +1,10 @@
-Captains Toolkit
+Capitains Toolkit
 =======
 
 ## About
 As every DH or more generally IT project, we needed a bad joke for the name. Scrambling together CTS and API, we opted out for CAPITainS. We hope you like it.
 
-Captains Toolkit is providing a CTS API toolkit and python abstraction with built-in function for deployements
+Capitains Toolkit is providing a CTS API toolkit and python abstraction with built-in function for deployements
 
 ## Support informations
 **Database**
