@@ -10,9 +10,10 @@ Captains Toolkit configuration
   4. [Example](#example)
 4. [Repositories Configuration](#repositories)
   1. [Introduction](#introduction-1)
-  2. [Resources](#resources)
-  3. [Resources Rewriting rules](#resources-rewriting-rules)
-  4. [Example](#example-1)
+  2. [Repository](#repository)
+  3. [Resources](#resources)
+  4. [Resources Rewriting rules](#resources-rewriting-rules)
+  5. [Example](#example-1)
 5. [Remote Hosts Configuration](#remote-hosts)
   1. [Introduction](#introduction-2)
   2. [Ports](#ports)
@@ -108,17 +109,55 @@ This configuration will use eXistDB as a database, retrieving it from sourceforg
 
 ###Introduction
 
+The repository configuration is at the root of the json file. Its key name is `repositories`. Unlike `db`, its value is a list of json object (formatted `[{}, {}]`). 
+
+###Repository
+
+| Parameter key | Type | Available Values | Description
+|---------------|------|------------------|-------------
+|method         |string| local, git, url  | The retrieval method to use. See [Retrieval Methods](#retrieval-methods) for more details
+|path           |string|                  | Path from which you need to retrieve your data. Local directory or file, git remote address or url depending on method.
+|resources      | list |                  | List of resources object. See below [Resources](#resources)
+
+
 ###Resources
+
+| Parameter key | Type | Available Values | Description
+|---------------|------|------------------|-------------
+|name           |string|                  | Identifier for this repository
+|texts          |string|                  | The folder's path in which fab will find the texts
+|inventory      |string|                  | The Inventory file's path which holds CTS informations
+|rewriting_rules| json |                  | Json object. See below [Resources Rewriting Rules](#resources-rewriting-rules)
+
+**Joker character : ** In file path for texts, inventory and rewriting_rules equivalencies, the character `#` can be used to emulate the root of the repository folder when downloaded.
 
 ###Resources rewriting rules
 
+Rewriting rules are a set of equivalencies, where `{key1 : value1, key2 : value2}` are helpers to translate database path in the inventory as file path in the downloaded folder. Both key and value should be string. See the example below.
+
 ###Example
 
+This repositories example is a set of 1 repository, which we retrieve through `git`. Inside it, we have one inventory, `allcts.xml` which we gave the identifier `canonical_example`. Its texts are found in the folder `#/CTS_XML_TEI/perseus`, where `#` is a joker to the root of the git repository. When browsing the repository, `/db/repository/end/of/path/file.xml` is rewritten and interpreted as `/git-respository/CTS_XML_TEI/perseus/end/of/path/file.xml` through rewriting rules.
+
+```javascript
+	"repositories" : [
+		"method" : "git",
+		"path" : "https://github.com/PerseusDL/canonical.git", 
+		"resources" : [
+			{
+				"name" : "canonical_example" 
+				"texts" : "#/CTS_XML_TEI/perseus",
+				"inventory" : "#/CTS_XML_TextInventory/allcts.xml" 
+				"rewriting_rules" : {
+					"/db/repository/" : "#/CTS_XML_TEI/perseus/"
+				}
+			}
+		]
+	],
+```
 ##Remote hosts
 
 ###Introduction
-
-###Database Credentials
 
 ###Ports
 
@@ -132,3 +171,5 @@ There is three retrieval methods available. Retrieval methods defines which serv
 - `url` : Download from an url. e.g. `{"method" : "url", "path" : "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar"}` will download eXist-db-setup-2.2.jar
 
 **Good practice :** While using git or download might be a good practice for production, while you set up your configuration file for the first runs, it's good to test it with `local`. This way, if your configuration file is wrong, you don't have to redownload all the files you needed.
+
+##Database Credentials
