@@ -78,7 +78,7 @@ You need to rename those file to config.json.
 
 ###Introduction
 
-###Software
+###Database Software
 
 ###Database Credentials
 
@@ -94,7 +94,7 @@ You need to rename those file to config.json.
 
 ###Example
 
-##Remote hosts Configuration
+##Remote hosts
 
 ###Introduction
 
