@@ -188,33 +188,21 @@ Push inventory to the database
 
 **Definition**
 
-
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|||
+Convert CTS3 Inventory to CTS5
 
 **Examples**
 
-
+`fab convert_cts3`
 
 ###fab clean
 
 **Definition**
 
-
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|||
+Clean the building dir in case something went wrong.
 
 **Examples**
 
-
+`fab clean`
 
 ##Remote
 
@@ -222,30 +210,32 @@ Push inventory to the database
 
 **Definition**
 
-
+Set host to which the remote commands should be sent to, referring to the json config file config.json["hosts"]["hostname"]
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+| host               | -       | Name of the host
 
 **Examples**
 
-
+As this function as no default and one parameter, you can run it without naming the parameter `fab set_hosts:hostname`. Through, this function does nothing by itself, so you need to put something after it.
 
 ###fab deploy
 
 **Definition**
 
-
+Deploy the CTS-API and its text to a given host
 
 **Parameters**
 
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|||
+| Parameter          | Default 		  | Description 
+|--------------------|----------------|-------------
+|convert 			 | True   		  | If set to False, does not convert cts3 to cts5
+|localhost			 | False  		  | 
+|*as_service		 | NotImplemented | Not implemented yet
 
 **Examples**
 
-
+`fab set_host:host_name deploy:convert=False`
