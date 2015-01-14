@@ -63,4 +63,179 @@ Test your inventories and texts. Tested (as of 14/01/2015) :
 
 ##Local only
 
+###fab db_start
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab db_stop
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab db_restore
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+###fab db_backup
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab push_texts
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab push_xq
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab push_inv
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab convert_cts3
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab clean
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
 ##Remote
+
+###fab set_hosts
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
+
+###fab deploy
+
+**Definition**
+
+
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|||
+
+**Examples**
+
+
