@@ -23,7 +23,7 @@ Capitains Toolkit configuration
 7. [Credentials](#database-credentials)
 
 ##Overview : the configuration file
-This CTS-API deployement uses a json file for its configuration. You have to create a config.json at the root of CTS-API installation
+To begin create a config.json at the CTS-API installation's root
 ```javascript
 {
 	"db" : {
@@ -68,7 +68,7 @@ This CTS-API deployement uses a json file for its configuration. You have to cre
 }
 ```
 
-**Important note** : in `["repositories"]["resources"]`, you can see that we use the joker `#`. This joker is replaced automatically by the build directory's path. Not using the joker would make opening files not working.
+**Important note** : in `["repositories"]["resources"]`, notice the `#` character. It is replaced with the build directory's path. If you forget it you can't open files.
 
 ##Examples 
 You need to rename those file to config.json.
@@ -85,14 +85,14 @@ The database configuration is at the root of the json file. Its key name is `db`
 
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
-| software      |string|existDB           | The software it will use to run the DB. See [supported database](../README.md#support-informations) in the main README.md
-| version       |string|                  | **Soon to be Deprecated** Version of the software you use
+| software      |string|existDB           | Name of supported database software. See [supported database](../README.md#support-informations)
+| version       |string|                  | **Soon to be Deprecated** Software version
 | method        |string|url,local,git     | The retrieval method to use. See [Retrieval Methods](#retrieval-methods) for more details
-| path          |string|                  | Path from which you need to retrieve your data. Local directory or file, git remote address or url depending on method.
+| path          |string|                  | Path to your data. It can be a local directory or file, git remote address, or url depending on method.
 | user          |json  |                  | See [Credentials](#database-credentials)
 
 ###Example
-This configuration will use eXistDB as a database, retrieving it from sourceforge and will use admin:password as credentials.
+This configuration will use eXistDB as the database, retrieving it from sourceforge and use admin:password as credentials.
 
 ```javascript
 "db" : {
@@ -110,15 +110,15 @@ This configuration will use eXistDB as a database, retrieving it from sourceforg
 
 ###Introduction
 
-The repository configuration is at the root of the json file. Its key name is `repositories`. Unlike `db`, its value is a list of json object (formatted `[{}, {}]`). 
+The repository configuration is at the root of the json file. Its key name is `repositories`. Unlike `db`, its value is an array of json objects ( `[{}, {}]`). 
 
 ###Repository
 
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
 |method         |string| local, git, url  | The retrieval method to use. See [Retrieval Methods](#retrieval-methods) for more details
-|path           |string|                  | Path from which you need to retrieve your data. Local directory or file, git remote address or url depending on method.
-|resources      | list |                  | List of resources object. See below [Resources](#resources)
+|path           |string|                  | Path to your data. It can be a local directory or file, git remote address or url depending on method.
+|resources      | list |                  | List of resources. See below [Resources](#resources)
 
 
 ###Resources
@@ -126,19 +126,19 @@ The repository configuration is at the root of the json file. Its key name is `r
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
 |name           |string|                  | Identifier for this repository
-|texts          |string|                  | The folder's path in which fab will find the texts
-|inventory      |string|                  | The Inventory file's path which holds CTS informations
-|rewriting_rules| json |                  | Json object. See below [Resources Rewriting Rules](#resources-rewriting-rules)
+|texts          |string|                  | The path fab uses to retrieve texts
+|inventory      |string|                  | The path to the Inventory file, which holds CTS information
+|rewriting_rules| json |                  | Json object. See [Resources Rewriting Rules](#resources-rewriting-rules)
 
-**Joker character : ** In file path for texts, inventory and rewriting_rules equivalencies, the character `#` can be used to emulate the root of the repository folder when downloaded.
+**Joker character : ** In file path for texts, inventory and rewriting_rules equivalencies, the `#` character can be used to map to the root of the repository, similar to how `~` maps to your home directory in BASH.
 
 ###Resources rewriting rules
 
-Rewriting rules are a set of equivalencies, where `{key1 : value1, key2 : value2}` are helpers to translate database path in the inventory as file path in the downloaded folder. Both key and value should be string. See the example below.
+Rewriting rules are a set of equivalencies, where `{key1 : value1, key2 : value2}` translate database paths in the inventory to file paths in the downloaded folder. Both key and value must be strings. See the example below.
 
 ###Example
 
-This repositories example is a set of 1 repository, which we retrieve through `git`. Inside it, we have one inventory, `allcts.xml` which we gave the identifier `canonical_example`. Its texts are found in the folder `#/CTS_XML_TEI/perseus`, where `#` is a joker to the root of the git repository. When browsing the repository, `/db/repository/end/of/path/file.xml` is rewritten and interpreted as `/git-respository/CTS_XML_TEI/perseus/end/of/path/file.xml` through rewriting rules.
+This repositories config example shows how to retrieve a single repository with `git`. Notice we have one inventory, `allcts.xml`, which we gave the identifier `canonical_example`. Its texts are found in the folder `#/CTS_XML_TEI/perseus`.  Notice we're using `#` to map to the root of the git repository. When browsing the repository, `/db/repository/end/of/path/file.xml` is rewritten and interpreted as `/git-respository/CTS_XML_TEI/perseus/end/of/path/file.xml` through rewriting rules.
 
 ```javascript
 "repositories" : [
@@ -160,30 +160,30 @@ This repositories example is a set of 1 repository, which we retrieve through `g
 
 ###Introduction
 
-The remote hosts configuration is at the root of the json file. Its key name is `repositories`. Unlike `db` nor `repositories`, its value is a dictionary of json object (formatted `{"hosts" : { "host_name" : {host json object}, "host_name_2": {host json object}}}`) which are defined below in [Host](#host). 
+The remote hosts configuration is at the root of the json file. Its key name is `repositories`. Unlike `db` and `repositories`, its value is a json object (formatted `{"hosts" : { "host_name" : {host json object}, "host_name_2": {host json object}}}`) which are defined below in [Host](#host). 
 
 ###Host
 
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
-|dumps          |string|                  | Path on the remote server where you whish to store files before they are put in the right folder.
-|db             |string|                  | Path where you wish your database software to be installed to on the remote server
-|data           |string|                  | Path where you wish your database data to be saved to on the remote server
+|dumps          |string|                  | Path on the remote server to store files before they are put in the right folder.
+|db             |string|                  | Path on the remote server to install the database software 
+|data           |string|                  | Path on the remote server to save database data
 |user           |json  |                  | See [Credentials](#database-credentials)
 |port           |json  |                  | See [Ports](#ports)
 
-**Important notice** : The name of the host should be ssh aliases. Here is a great [tutorial](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/) about it, but you can look on your favourite search engine as well. I ain't your master, I'm a github page.
+**Important notice** : The name of the host must be an ssh aliases. Here is a [tutorial](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/) about it, but you can look on your favourite search engine as well. I ain't your master, I'm a github page.
 
 ###Ports
 
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
-|default        |int   |                  | Default port to run the main database on (the public database)
-|replicate      |int   |                  | Port to use for testing and deploying new data without interruption of services
+|default        |int   |                  | The main database's (the public database) default port
+|replicate      |int   |                  | Database port used to test and deploy new data without service interruption
 
 ###Example
 
-We have one host, named pompei where we can deploy to using `fab set_hosts:pompei deploy` if pompei is a ssh alias. The exist.jar will be put in /home/pompei/dumps while it will be installed in /opt/db and have its data stored in /opt/data. The credential (which have a poor security level as you can see) are admin:password. The public port for the running API will be 8080 while the one we use for tests, rollbacks and deployements is 8090.
+We have one host named pompei that is configured and ready to deploy.
 
 ```javascript
 "hosts" : {
@@ -203,18 +203,22 @@ We have one host, named pompei where we can deploy to using `fab set_hosts:pompe
 }
 ```
 
-##Retrieval Methods
-There is three retrieval methods available. Retrieval methods defines which service do you want to use to get your database software, text repository, etc. *e.g.* : if you have your texts locally, you might want to just use them instead of downloading it again and again from the web.
+If pompei is a ssh alias we can deploy the database using `fab set_hosts:pompei deploy`, exist.jar will be put in /home/pompei/dumps, installed in /opt/db, and its data is stored in /opt/data. 
+The database access credentials (which as you can see aren't very secure) are admin:password.
+API's public port is 8080.  The other port, 8090, we use for tests, rollbacks and deployements.
 
-- `local` : Retrieve the files from your local computer, given a path such /path/to/my/repository
-- `git` : Clone a repository given its https location or its git remote url address
+##Retrieval Methods
+There is three retrieval methods available. They define how you will connect to your database software, text repository, etc. If your texts are stored locally, use `local` instead of the others so you aren't repeatedly downloading them from the web.
+
+- `local` : Retrieve local files stored in a given path `/path/to/my/repository`
+- `git` : Clone a repository using its https location or its git remote url address
 - `url` : Download from an url. e.g. `{"method" : "url", "path" : "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar"}` will download eXist-db-setup-2.2.jar
 
-**Good practice :** While using git or download might be a good practice for production, while you set up your configuration file for the first runs, it's good to test it with `local`. This way, if your configuration file is wrong, you don't have to redownload all the files you needed.
+**Good practice :** Using `git` or `url` may be better for production, but while you are still configuring your installation it's best to test it with `local`. This way if your configuration file is wrong, you won't waste time redownloading all the files.
 
 ##Database Credentials
 
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
-|name           |string|                  | Name of the admin user to be used. For eXistDB, it should be admin
-|password       |string|                  | Password of the admin user to be used. For security reason, it should not be an empty string
+|name           |string|                  | Name of the admin user. For eXistDB, it should be admin
+|password       |string|                  | The admin user's password. For security reason, it should not be an empty string
