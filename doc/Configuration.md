@@ -1,4 +1,4 @@
-CTS-API Toolkit configuration
+Captains Toolkit configuration
 ===
 
 ##Overview : the configuration file

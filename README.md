@@ -1,8 +1,10 @@
-CTS-API
+Captains Toolkit
 =======
 
 ## About
-CTS-API is providing a CTS API toolkit and python abstraction with built-in function for deployements
+As every DH or more generally IT project, we needed a bad joke for the name. Scrambling together CTS and API, we opted out for CAPITainS. We hope you like it.
+
+Captains Toolkit is providing a CTS API toolkit and python abstraction with built-in function for deployements
 
 ## Support informations
 **Database**
@@ -17,8 +19,9 @@ CTS-API is providing a CTS API toolkit and python abstraction with built-in func
 ## Documentation
 - [Commands](doc/Commands.md)
 - [Configuration](doc/Configuration.md)
-- [Roadmap](doc/Roadmap.md)
 - [Code base](doc/Code.md)
+- [Roadmap](doc/Roadmap.md)
+- [Metadata Design](doc/CTS-Metadata-Design.md)
 
 
 ## Requirements

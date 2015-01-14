@@ -1,4 +1,4 @@
-CTS Toolkit commands
+Captains Toolkit commands
 ===
 
 The commands are in no particular order. If you only want to deploy an instance, see [`fab deploy`](#fab-deploy) and the [configuration documentation](./Configuration.md)
