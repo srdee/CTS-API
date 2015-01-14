@@ -168,7 +168,7 @@ class Helper(ConsoleObject):
 
     def __str__(self):
         """ Return a str representation of the object """
-        return "{0}Command to run on another console{3} : {2}{1}{3}".format(self.color.BOLD, self.string, self.color.DARKCYAN, self.color.END)
+        return "{0}Command to run on another terminal or in opened ssh shell {3} : {2}{1}{3}".format(self.color.BOLD, self.string, self.color.DARKCYAN, self.color.END)
 
 
 class Parameter(ConsoleObject):

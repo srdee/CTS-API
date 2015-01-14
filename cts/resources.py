@@ -8,7 +8,7 @@
 """
 
 from .files import File
-from .xml.inventory import Inventory
+from .xmls.inventory import Inventory
 
 
 class Resource(object):
@@ -37,7 +37,7 @@ class Resource(object):
         :param if_exists: Retrieve documents only if able to find document locally
         :type if_exists: boolean
         :returns: All documents in this resource
-        :rtype: list(cts.xml.texts.Document)
+        :rtype: list(cts.xmls.texts.Document)
         """
         documents = list()
         for textGroup in self.inventory.textGroups:
@@ -56,7 +56,7 @@ class Resource(object):
         :param if_exists: Retrieve texts only if able to find document locally
         :type if_exists: boolean
         :returns: All texts in this resource
-        :rtype: list(cts.xml.texts.Text)
+        :rtype: list(cts.xmls.texts.Text)
         """
         texts = list()
         for textGroup in self.inventory.textGroups:

@@ -4,16 +4,16 @@
 import os
 from nose import with_setup
 from nose.tools import assert_is_instance
-import cts.xml.inventory
-import cts.xml.texts
+import cts.xmls.inventory
+import cts.xmls.texts
 import cts.resources
 import xml.etree.ElementTree as ET
 
 
 basePath = os.path.dirname(os.path.abspath(__file__)) + "/test_files"
 test_inventory_path = basePath + "/test_inventory.xml"
-inv = cts.xml.inventory.Inventory(xml=test_inventory_path, rewriting_rules={}, strict=False)
-inv_correct = cts.xml.inventory.Inventory(
+inv = cts.xmls.inventory.Inventory(xml=test_inventory_path, rewriting_rules={}, strict=False)
+inv_correct = cts.xmls.inventory.Inventory(
     xml=test_inventory_path,
     rewriting_rules={
         "/db/repository/greekLit/tlg0003/tlg001/": basePath + "/"
@@ -76,7 +76,7 @@ def TestTranslationAttributes():
     trans = inv.textGroups[0].works[0].translations[0]
     assert trans.id == "greekLit:perseus-eng1"
     assert trans.getTitle() == "History of the Peloponnesian War (English translation by Thomas Hobbes)"  # Default should be english
-    assert_is_instance(trans.document, cts.xml.texts.Document)
+    assert_is_instance(trans.document, cts.xmls.texts.Document)
 
 
 @with_setup(inventory_setup, None)
@@ -89,7 +89,7 @@ def TestTranslationDocumentNoRewriting():
 def TestTranslationDocumentCitation():
     doc = inv_correct.textGroups[0].works[0].translations[0].document
     assert doc.path == basePath + "/tlg0003.tlg001.perseus-eng1.xml"  # Because no rewriting_rules
-    assert_is_instance(doc.citation, cts.xml.texts.Citation)
+    assert_is_instance(doc.citation, cts.xmls.texts.Citation)
     results, errors = doc.testCitation()
     assert results == [True, True], "Results for Translations document citation test should be successful"
     assert "Citation Mapping (2) has label chapter, while refState[2] has unit error_creator" in [error.string for error in errors]
@@ -99,7 +99,7 @@ def TestTranslationDocumentCitation():
 def TestEditionDocumentCitation():
     doc = inv_correct.textGroups[0].works[0].editions[0].document
     assert doc.path == basePath + "/tlg0003.tlg001.perseus-grc2.xml"  # Because no rewriting_rules
-    assert_is_instance(doc.citation, cts.xml.texts.Citation)
+    assert_is_instance(doc.citation, cts.xmls.texts.Citation)
     assert doc.citation.version == 3, " Version not found "
     results, errors = doc.testCitation()
     print(errors)
@@ -109,19 +109,19 @@ def TestEditionDocumentCitation():
 
 def TestGetTexts():
     resources = inv_correct.textGroups[0].works[0].getTexts()
-    assert len([t for t in resources if isinstance(t, cts.xml.texts.Edition)]) == 1, "getTexts() should returns Edition"
-    assert len([t for t in resources if isinstance(t, cts.xml.texts.Translation)]) == 1, "getTexts() should returns Translation"
+    assert len([t for t in resources if isinstance(t, cts.xmls.texts.Edition)]) == 1, "getTexts() should returns Edition"
+    assert len([t for t in resources if isinstance(t, cts.xmls.texts.Translation)]) == 1, "getTexts() should returns Translation"
 
 
 def TestGetDocuments():
     R = cts.resources.Resource(name="don't care", texts="don't care", inventory=inv_correct, rewriting_rules={})
     texts = R.getDocuments(if_exists=False)
-    assert len([t for t in texts if isinstance(t, cts.xml.texts.Document)]) == 2, "getTexts() should returns all documents when not checking if exists"
+    assert len([t for t in texts if isinstance(t, cts.xmls.texts.Document)]) == 2, "getTexts() should returns all documents when not checking if exists"
 
     texts = R.getDocuments(if_exists=True)
-    assert len([t for t in texts if isinstance(t, cts.xml.texts.Document)]) == 2, "getTexts() should returns all documents if they exists"
+    assert len([t for t in texts if isinstance(t, cts.xmls.texts.Document)]) == 2, "getTexts() should returns all documents if they exists"
 
     R = cts.resources
     R = cts.resources.Resource(name="don't care", texts="don't care", inventory=inv, rewriting_rules={})
     texts = R.getDocuments(if_exists=True)
-    assert len([t for t in texts if isinstance(t, cts.xml.texts.Document)]) == 0, "getTexts() should returns no documents if documents don't exist"
+    assert len([t for t in texts if isinstance(t, cts.xmls.texts.Document)]) == 0, "getTexts() should returns no documents if documents don't exist"

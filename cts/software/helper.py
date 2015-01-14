@@ -5,7 +5,7 @@ from .baseX import BaseX
 from .existDB import ExistDB
 
 
-def instantiate(software, version, method, path, target="./", user=None):
+def instantiate(software, version, method, path, data_dir=None, target="./", user=None, port=8080):
     """ Initiate the object
 
     :param software: Name of the software
@@ -22,8 +22,8 @@ def instantiate(software, version, method, path, target="./", user=None):
     :rtype: DB subclass
     """
     if software.lower() == "existdb":
-        return ExistDB(software=software, version=version, method=method, path=path, target=target, user=user)
+        return ExistDB(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user, port=port)
     elif software.lower() == "basex":
-        return BaseX(software=software, version=version, method=method, path=path, target=target, user=user)
+        return BaseX(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user, port=port)
     else:
         raise NotImplemented("This DB software is not implemented yet.")
