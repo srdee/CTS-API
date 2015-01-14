@@ -16,8 +16,9 @@ Captains Toolkit configuration
   5. [Example](#example-1)
 5. [Remote Hosts Configuration](#remote-hosts)
   1. [Introduction](#introduction-2)
-  2. [Ports](#ports)
-  3. [Example](#example-2)
+  2. [Host](#host)
+  3. [Ports](#ports)
+  4. [Example](#example-2)
 6. [Retrieval Methods](#retrieval-methods)
 7. [Credentials](#database-credentials)
 
@@ -159,9 +160,48 @@ This repositories example is a set of 1 repository, which we retrieve through `g
 
 ###Introduction
 
+The remote hosts configuration is at the root of the json file. Its key name is `repositories`. Unlike `db` nor `repositories`, its value is a dictionary of json object (formatted `{"hosts" : { "host_name" : {host json object}, "host_name_2": {host json object}}}`) which are defined below in [Host](#host). 
+
+###Host
+
+| Parameter key | Type | Available Values | Description
+|---------------|------|------------------|-------------
+|dumps          |string|                  | Path on the remote server where you whish to store files before they are put in the right folder.
+|db             |string|                  | Path where you wish your database software to be installed to on the remote server
+|data           |string|                  | Path where you wish your database data to be saved to on the remote server
+|user           |json  |                  | See [Credentials](#database-credentials)
+|port           |json  |                  | See [Ports](#ports)
+
+**Important notice** : The name of the host should be ssh aliases. Here is a great [tutorial](http://www.thegeekstuff.com/2008/11/3-steps-to-perform-ssh-login-without-password-using-ssh-keygen-ssh-copy-id/) about it, but you can look on your favourite search engine as well. I ain't your master, I'm a github page.
+
 ###Ports
 
+| Parameter key | Type | Available Values | Description
+|---------------|------|------------------|-------------
+|default        |int   |                  | Default port to run the main database on (the public database)
+|replicate      |int   |                  | Port to use for testing and deploying new data without interruption of services
+
 ###Example
+
+We have one host, named pompei where we can deploy to using `fab set_hosts:pompei deploy` if pompei is a ssh alias. The exist.jar will be put in /home/pompei/dumps while it will be installed in /opt/db and have its data stored in /opt/data. The credential (which have a poor security level as you can see) are admin:password. The public port for the running API will be 8080 while the one we use for tests, rollbacks and deployements is 8090.
+
+```javascript
+"hosts" : {
+	"pompei" : {
+		"dumps" : "/home/pompei/dumps",
+		"db" : "/opt/db/",
+		"data" : "/opt/data/",
+		"user" : {
+			"name" : "admin",
+			"password" : "password"
+		},
+		"port" : {
+			"default" : 8080, 
+			"replicate" : 8090
+		}
+	}
+}
+```
 
 ##Retrieval Methods
 There is three retrieval methods available. Retrieval methods defines which service do you want to use to get your database software, text repository, etc. *e.g.* : if you have your texts locally, you might want to just use them instead of downloading it again and again from the web.
@@ -173,3 +213,8 @@ There is three retrieval methods available. Retrieval methods defines which serv
 **Good practice :** While using git or download might be a good practice for production, while you set up your configuration file for the first runs, it's good to test it with `local`. This way, if your configuration file is wrong, you don't have to redownload all the files you needed.
 
 ##Database Credentials
+
+| Parameter key | Type | Available Values | Description
+|---------------|------|------------------|-------------
+|name           |string|                  | Name of the admin user to be used. For eXistDB, it should be admin
+|password       |string|                  | Password of the admin user to be used. For security reason, it should not be an empty string
