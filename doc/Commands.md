@@ -67,76 +67,80 @@ Test your inventories and texts. Tested (as of 14/01/2015) :
 
 **Definition**
 
-
+Start the database
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+|localhost			 | False   | If set to True, start the local database
 
 **Examples**
 
-
+`fab db_start:localhost=True`
 
 ###fab db_stop
 
 **Definition**
 
-
+Stop the database
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+|localhost			 | False   | If set to True, start the local database
 
 **Examples**
 
-
+`fab db_stop:localhost=True`
 
 ###fab db_restore
 
 **Definition**
 
-
+Restore the database
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+|localhost			 | False   | If set to True, start the local database
+|cts 			     | 5       | Version of the CTS API (3 or 5)
 
 **Examples**
-
+`fab db_restore:cts=3&localhost=True`
 
 ###fab db_backup
 
 **Definition**
 
-
+Make a dump of the database
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+|localhost			 | False   | If set to True, start the local database
+|cts 			     | 5       | Version of the CTS API (3 or 5)
 
 **Examples**
 
-
+`fab db_restore:cts=5`
 
 ###fab push_texts
 
 **Definition**
 
-
+Push texts in corpora to the database
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+|localhost			 | True	   | If set to false, push to an defined environement
+
+**Warning** : This behaviour will be changed soon.
 
 **Examples**
 
@@ -146,32 +150,38 @@ Test your inventories and texts. Tested (as of 14/01/2015) :
 
 **Definition**
 
-
+Push the XQuery to the database
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+|localhost			 | True	   | If set to false, push to an defined environement
+|cts 			     | 5       | Version of the CTS API (3 or 5)
+
+**Warning** : This behaviour will be changed soon.
 
 **Examples**
 
-
+`fab push_xq:cts=3`
 
 ###fab push_inv
 
 **Definition**
 
-
+Push inventory to the database
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|||
+|localhost			 | True	   | If set to false, push to an defined environement
+
+**Warning** : This behaviour will be changed soon.
 
 **Examples**
 
+`fab push_inv`
 
 
 ###fab convert_cts3
