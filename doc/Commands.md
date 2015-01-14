@@ -6,6 +6,7 @@ The commands are in no particular order. If you only want to deploy an instance,
 ##Summary
 1.	[Introduction](#introduction)
 2.	[Tests](#tests)
+2.2 [`test_cts`](#fab-test_cts)
 3.	[Local Only](#local-only)
 4.	[Remote](#remote)
 
@@ -25,6 +26,7 @@ To run command, go in a terminal at the root of this repository (CTS-API). Comma
 ###fab test_cts
 
 **Definition**
+
 Test your inventories and texts. Tested (as of 14/01/2015) :
 - Replication of CitationMapping in XML TEI files (tei:refState)
 - Valid XML
@@ -41,6 +43,7 @@ Test your inventories and texts. Tested (as of 14/01/2015) :
 | no_color			 | False   | If set to True, results won't be color formatted
 
 **Examples**
+
 `fab test_cts:nosuccess=True,no_color=True` will print only failures and warning, without any formatting. You can turn it into a `fab test_cts:nosuccess=True,no_color=True > results.txt` to read the report outside a terminal. 
 
 ##Local only
