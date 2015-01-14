@@ -5,11 +5,20 @@ Captains Toolkit configuration
 1. [Overview](#overview--the-configuration-file)
 2. [Configuration Examples](#examples)
 3. [Database Configuration](#database)
-  1. [Software](#database-software)
-  2. [Credentials](#database-credentials)
-4. [Repositories Configuration](#repositories)
   1. [Introduction](#introduction)
+  2. [Software](#database-software)
+  3. [Credentials](#database-credentials)
+  4. [Example](#example)
+4. [Repositories Configuration](#repositories)
+  1. [Introduction](#introduction-1)
+  2. [Resources](#resources)
+  3. [Resources Rewriting rules](#resources-rewriting-rules)
+  4. [Example](#example-1)
 5. [Remote Hosts Configuration](#remote-hosts)
+  1. [Introduction](#introduction-2)
+  2. [Credentials](#database-credentials-1)
+  3. [Ports](#ports)
+  4. [Example](#example-2)
 6. [Retrieval Methods](#retrieval-methods)
 
 ##Overview : the configuration file
@@ -64,7 +73,35 @@ This CTS-API deployement uses a json file for its configuration. You have to cre
 You need to rename those file to config.json.
 - [Perseus Digital Library Configuration](../config.perseus.json)
 
+
+##Database
+
 ###Introduction
 
+###Software
+
+###Database Credentials
+
+###Example
+
+##Repositories
 
 ###Introduction
+
+###Resources
+
+###Resources rewriting rules
+
+###Example
+
+##Remote hosts Configuration
+
+###Introduction
+
+###Database Credentials
+
+###Ports
+
+###Example
+
+##Retrieval Methods
