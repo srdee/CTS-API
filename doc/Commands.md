@@ -8,7 +8,22 @@ The commands are in no particular order. If you only want to deploy an instance,
 2.	[Tests](#tests)
   1. [`test_cts`](#fab-test_cts)
 3.	[Local Only](#local-only)
+  1. [`db_start`](db_start)
+  2. [`db_stop`](#fab-db_stop)
+  3. [`db_restore`](#fab-db_restore)
+  4. [`db_backup`](#fab-db_backup)
+  5. [`push_texts`](#fab-push_texts)
+  6. [`push_xq`](#fab-push_xq)
+  7. [`push_inv`](#fab-push_inv)
+  8. [`convert_cts3`](#fab-convert_cts3)
+  9. [`clean`](#fab-clean)
 4.	[Remote](#remote)
+  1. **Important** : [`set_hosts`](#fab-set_hosts)
+  2. [`deploy`](#fab-deploy)
+  3. rollback
+  4. stop
+  5. start
+  6. restart
 
 ##Introduction
 

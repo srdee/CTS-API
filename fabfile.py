@@ -212,7 +212,7 @@ def deploy(convert=True, localhost=False):
     print ("Installing locally")
     _db_setup(localhost=True)
     _db_start(localhost=True)
-    push_cts(localhost=True, start=False)
+    push_texts(localhost=True, start=False)
     push_xq(localhost=True, start=False)
     push_inv(localhost=True, start=False)
 
@@ -322,7 +322,7 @@ def clean():
 
 
 @task
-def push_cts(localhost=True, start=True):
+def push_texts(localhost=True, start=True):
     """ Push Corpora to the Database """
     if not hasattr(env, "db"):
         _init(retrieve_init=False)
