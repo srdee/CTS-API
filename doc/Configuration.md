@@ -83,7 +83,7 @@ The database configuration is at the root of the json file. Its key name is `db`
 
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
-| software      |string|existDB           | The software it will use to run the DB. See [supported database](../README.md#support-informations)
+| software      |string|existDB           | The software it will use to run the DB. See [supported database](../README.md#support-informations) in the main README.md
 | version       |string|                  | **Soon to be Deprecated** Version of the software you use
 | method        |string|url,local,git     | The retrieval method to use. See [Retrieval Methods](#retrieval-methods) for more details
 | path          |string|                  | Path from which you need to retrieve your data. Local directory or file, git remote address or url depending on method.
