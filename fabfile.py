@@ -118,7 +118,8 @@ def _corpora_config(force=False):
             shutil.rmtree(_get_build_dir() + "/data")
             _corpora_config()
         else:
-            print("{folder} already exists".format(_get_build_dir() + "/data"))
+            for corpus in env.corpora:
+                corpus.instantiate_resources()
 
 
 def _db_config():

@@ -115,7 +115,7 @@ class Corpus(object):
         self.file.get()
         self._instantiate_resources()
 
-    def _instantiate_resources(self, resources=None):
+    def instantiate_resources(self, resources=None):
         if resources is None:
             resources = self._resources
 
