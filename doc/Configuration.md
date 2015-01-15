@@ -28,7 +28,6 @@ To begin create a config.json at the CTS-API installation's root
 {
 	"db" : {
 		"software"	: "existDB",  // Available : existDB
-		"version"	: "2.2",
 		"method"	: "url", // Available : local, url
 		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",  // A url or an absolute path
 		"user"		: {
@@ -85,9 +84,7 @@ The database configuration is at the root of the json file. Its key name is `db`
 
 | Parameter key | Type | Available Values | Description
 |---------------|------|------------------|-------------
-| software      |string|existDB           | Name of supported database software. See [supported database](../README.md#support-informations)
-| version       |string|                  | **Soon to be Deprecated** Software version
-| method        |string|url,local,git     | The retrieval method to use. See [Retrieval Methods](#retrieval-methods) for more details
+| software      |string|existDB           | Name of supported database software. See [supported database](../README.md#support-informations)| method        |string|url,local,git     | The retrieval method to use. See [Retrieval Methods](#retrieval-methods) for more details
 | path          |string|                  | Path to your data. It can be a local directory or file, git remote address, or url depending on method.
 | user          |json  |                  | See [Credentials](#database-credentials)
 
@@ -97,7 +94,6 @@ This configuration will use eXistDB as the database, retrieving it from sourcefo
 ```javascript
 "db" : {
 	"software"	: "existDB", 
-	"version"	: "2.2",
 	"method"	: "url",
 	"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",
 	"user"		: {

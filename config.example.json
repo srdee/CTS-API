@@ -1,7 +1,6 @@
 {
 	"db" : {
 		"software"	: "existDB",
-		"version"	: "2.2",
 		"method"	: "url",
 		"path"		: "http://cznic.dl.sourceforge.net/project/exist/Stable/2.2/eXist-db-setup-2.2.jar",
 		"user"		: {

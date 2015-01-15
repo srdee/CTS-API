@@ -131,7 +131,6 @@ def _db_config():
 
     env.db = cts.software.helper.instantiate(
         software=env.config["db"]["software"],
-        version=env.config["db"]["version"],
         method=env.config["db"]["method"],
         path=env.config["db"]["path"],
         data_dir=env.build_dir + "db/data",
@@ -292,7 +291,6 @@ def deploy(convert=True, localhost=False):
         remote_user.from_dic(env.target["user"])
         env.remote_db = cts.software.helper.instantiate(
             software=env.config["db"]["software"],
-            version=env.config["db"]["version"],
             method=env.config["db"]["method"],
             path=env.config["db"]["path"],
             data_dir=env.target["data"] + "/" + version + "/",
