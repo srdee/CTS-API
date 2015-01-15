@@ -38,23 +38,41 @@ env.version = datetime.now().strftime(TIMESTAMP_FORMAT)
 # Private functions
 def _set_host_db(version=None):
     """ Set a remote_db according to a config file
+
+    :param version: Version to use. If set to none, will retrieve the last automatically
     """
 
     if version is None:
-        version = env.version
+        version = _actual_version()
 
-    remote_user = Credential()
-    remote_user.from_dic(env.target["user"])
-    env.remote_db = cts.software.helper.instantiate(
-        software=env.config["db"]["software"],
-        method=env.config["db"]["method"],
-        source_path=env.config["db"]["path"],
-        binary_dir=env.target["db"] + "/" + version + "/",
-        data_dir=env.target["data"] + "/" + version + "/",
-        download_dir=env.target["dumps"],
-        user=remote_user,
-        port=env.target["port"]["default"]
-    )
+    if env.as_service is False:
+        remote_user = Credential()
+        remote_user.from_dic(env.target["user"])
+        env.remote_db = cts.software.helper.instantiate(
+            software=env.config["db"]["software"],
+            method=env.config["db"]["method"],
+            source_path=env.config["db"]["path"],
+            binary_dir=env.target["db"] + "/" + version + "/",
+            data_dir=env.target["data"] + "/" + version + "/",
+            download_dir=env.target["dumps"],
+            user=remote_user,
+            port=env.target["port"]["default"]
+        )
+
+def _actual_version(service_name=None):
+    _db_config()
+    if service_name is None:
+        service_name = env.project_name
+
+    print("Looking for last installed version")
+    if env.as_service is True:
+        fn = local
+    else:
+        fn = run
+
+    v = fn("ls -la /etc/init.d/{service_name}".format(service_name=service_name), quiet=True)
+    last_version = v.split("\n")[-1].split()[-1].replace("//", "/").replace(env.db.get_service_file().replace(env.db.directory, ""), "").split("/")[-1]
+    return last_version
 
 
 def _define_env(build_dir=False):
@@ -173,6 +191,23 @@ def _corpora_config(force=False):
                 corpus.instantiate_resources()
 
 
+def _db_restore(db, source_dir, localhost, cts=5):
+    db.restore(fn=_define_env(localhost), cts=cts, directory=source_dir)
+
+
+def _db_backup(cts, db, localhost):
+    """ Backup the database
+
+    :param cts: Version of cts
+    :type cts: int
+    :param db: DB instance to use
+    :type db: cts.software.DB
+    :param localhost: Wether or not we use loca
+    :type localhost: boolean
+    """
+    return db.dump(fn=_define_env(localhost), cts=cts, output=db.download_dir+"/{md5}.zip")
+
+
 def _db_config():
     """ Create DB instance """
     if not env.config:
@@ -285,7 +320,7 @@ def _db_restart(service_name=None):
     """
     if service_name is None:
         service_name = env.project_name
-    cmd = "/etc/init.d/{service_name} start".format(service_name=service_name)
+    cmd = "/etc/init.d/{service_name} restart".format(service_name=service_name)
     if env.as_service is True:
         local("sudo " + cmd)
     else:
@@ -341,16 +376,23 @@ def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
 
 
 @task
-def deploy(convert=True, localhost=False):
+def deploy(convert=True, localhost=False, reuse_local=False):
     """ Build a clean local version and deploy.
 
     :param convert: Force conversion of CTS3 inventory
     :param convert: bool
     :param localhost: Deploy a local version only if set to True
     :type localhost: bool
+    :param reuse_local: If you forgot to put set_hosts or as_service
+    :type reuse_local: boolean
     """
     _init()
+    """ shortcode for testing
+    if reuse_local is not False:
+        reuse_local = bool(strtobool(str(reuse_local)))
 
+    if reuse_local is False:
+    """
     print("Downloading DB software")
     env.db.retrieve()
 
@@ -369,9 +411,9 @@ def deploy(convert=True, localhost=False):
 
     if env.target is not None:
         print("Dumping DB")
-        backed_up_databases = db_backup(cts=5, localhost=True)
+        backed_up_databases = _db_backup(cts=5, db=env.db, localhost=True)
         #We don't need our DB anymore !
-        _db_stop(localhost=True)
+        _db_stop(build_dir=True)
 
         run("mkdir -p {0}".format(env.target["dumps"]))
         run("mkdir -p {0}".format(env.target["db"]))
@@ -381,11 +423,12 @@ def deploy(convert=True, localhost=False):
         put(local_path=env.db.file.path, remote_path=env.target["dumps"])
         _set_host_db(version=env.version)
         _db_setup(db=env.remote_db)
-        open_shell()
 
         #Now we do the config file dance : we update the config locally
         env.db.set_port(env.target["port"]["replicate"])
         env.db.update_config()
+        env.remote_db.set_port(env.target["port"]["replicate"])
+        print(env.remote_db)
 
         #We copy the given config files to remote
         for path in env.db.get_config_files():
@@ -393,24 +436,17 @@ def deploy(convert=True, localhost=False):
                 local_path=env.db.directory + path,
                 remote_path=env.remote_db.directory + path
             )
+        #We update our remote_db to have the new replicate_port
 
         for backed_up_database in backed_up_databases:
             put(local_path=backed_up_database[0], remote_path=env.target["dumps"])   # We upload the files on the other end
 
         _make_service(service_name=env.replicate_name)
-
         _db_start(service_name=env.replicate_name)
-
-        sudo("/etc/init.d/{project_name} start".format(
-            project_name=env.replicate_name
-        ))
-
-        db_restore(db=env.remote_db, source_dir=env.target["dumps"])
+        _db_restore(db=env.remote_db, source_dir=env.target["dumps"], localhost=False)
 
         #No we stop old main implementation and start the new one
-        sudo("/etc/init.d/{project_name} stop".format(
-            project_name=env.replicate_name
-        ))
+        _db_stop(service_name=env.replicate_name)
 
         #We also need to put the right running port
         env.db.set_port(env.target["port"]["default"])
@@ -425,9 +461,7 @@ def deploy(convert=True, localhost=False):
 
         _make_service()
 
-        sudo("/etc/init.d/{project_name} start".format(
-            project_name=env.project_name
-        ))
+        _db_start(service_name=env.project_name)
         clean()
 
     elif as_service is True:
@@ -485,7 +519,14 @@ def push_inv(build_dir=True, start=True):
 def db_stop():
     """ Stop the database """
     _set_host_db()
-    _db_start(db=env.remote_db, build_dir=False)
+    _db_stop(db=env.remote_db, build_dir=False)
+
+
+@task
+def db_restart():
+    """ Restart the database """
+    _set_host_db()
+    _db_restart(service_name=env.project_name)
 
 
 @task
@@ -523,42 +564,46 @@ def convert_cts3(copy=True):
         for inventory in converted:
             new_inventory = "{directory}/{filename}".format(directory=directory, filename=inventory.split("/")[-1])
             shutil.copyfile(inventory, new_inventory)
-            print ("{inventory} converted version can be found here : {new_inventory}".format(inventory=inventory, new_inventory=new_inventory))
+            print ("{inventory} \n --> {new_inventory}".format(inventory=inventory.split("/")[-1], new_inventory=os.path.abspath(new_inventory)))
 
 
 @task
 def db_backup(cts=5, version=None):
     """ Backup dbs """
     _init()
+    localhost = False
 
-    if env.as_service is True or len(env.hosts) > 0:
-        _set_host_db(version=version)
-        db = env.remote_db
-        localhost = False
-    else:
-        db = env.db
-        localhost = True
+    if env.as_service is True:
+        env.as_service
 
-    return db.dump(fn=_define_env(localhost), cts=cts, output=db.download_dir+"/{md5}.zip")
+    if version is None:
+        version = _actual_version()
+
+    _set_host_db(version=version)
+    db = env.remote_db
+
+    return _db_backup(cts=cts, db=db, localhost=localhost)
 
 
 @task
-def db_restore(cts=5, localhost=False, db=None, source_dir=None):
-    """ Backup dbs """
+def db_restore(cts=5, db=None, source_dir=None):
+    """ Restore dbs """
     _init()
+    localhost = False
 
-    if env.as_service is True or len(env.hosts) > 0:
-        _set_host_db()
-        db = env.remote_db
-        localhost = False
-    else:
-        db = env.db
-        localhost = True
+    if env.as_service is True:
+        env.as_service
+
+    if version is None:
+        version = _actual_version()
 
     if source_dir is None:
         source_dir = db.download_dir
 
-    db.restore(fn=_define_env(localhost), cts=cts, directory=source_dir)
+    _set_host_db(version=version)
+    db = env.remote_db
+
+    _db_restore(db=db, source_dir=source_dir, localhost=localhost, cts=cts)
 
 
 @task
