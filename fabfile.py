@@ -23,6 +23,7 @@ from cts.resources import Corpus
 # globals
 env.project_name = 'cts-api'
 env.replicate_name = env.project_name + "-replicate"
+env.local_build_name = env.project_name + "-builder"
 env.use_ssh_config = True
 
 env.build_dir = None
@@ -42,12 +43,13 @@ def _set_host_db(version=None):
     :param version: Version to use. If set to none, will retrieve the last automatically
     """
 
-    if version is None:
-        version = _actual_version()
+    remote_user = Credential()
+    remote_user.from_dic(env.target["user"])
 
     if env.as_service is False:
-        remote_user = Credential()
-        remote_user.from_dic(env.target["user"])
+        if version is None:
+            version = _actual_version()
+
         env.remote_db = cts.software.helper.instantiate(
             software=env.config["db"]["software"],
             method=env.config["db"]["method"],
@@ -58,6 +60,19 @@ def _set_host_db(version=None):
             user=remote_user,
             port=env.target["port"]["default"]
         )
+    else:
+        print ("Remote db is the new green")
+        env.remote_db = cts.software.helper.instantiate(
+            software=env.config["db"]["software"],
+            method=env.config["db"]["method"],
+            source_path=env.config["db"]["path"],
+            binary_dir=env.target["db"] + "/",
+            data_dir=env.target["data"] + "/",
+            download_dir=env.build_dir,
+            user=remote_user,
+            port=env.target["port"]
+        )
+
 
 def _actual_version(service_name=None):
     _db_config()
@@ -90,7 +105,14 @@ def _define_env(build_dir=False):
     return run
 
 
-def _make_service(service_name=None):
+def _remove_service(service_name=None, build_dir=False):
+    """ Remove the service link
+
+    :param service_name: Name of the service
+    :type service_name: String
+    :param build_dir: If true, use the building_dir env.db
+    :type build_dir: boolean
+    """
     if service_name is None:
         service_name = env.project_name
 
@@ -102,21 +124,44 @@ def _make_service(service_name=None):
             project_name=service_name
         )
     ]
+
+    fn = sudo
+    if env.as_service is True or build_dir is True:
+        before = ["sudo " + cmd for cmd in before]
+        fn = local
+
+    with warn_only():
+        [fn(cmd) for cmd in before]
+
+
+def _make_service(service_name=None, build_dir=False):
+    """ Create the service link
+
+    :param service_name: Name of the service
+    :type service_name: String
+    :param build_dir: If true, use the building_dir env.db
+    :type build_dir: boolean
+    """
+    if service_name is None:
+        service_name = env.project_name
+
+    if build_dir is True:
+        db = env.db
+    else:
+        db = env.remote_db
+
     make_srv = "ln -s {service_executable} /etc/init.d/{project_name}".format(
-        service_executable=env.remote_db.get_service_file(),
+        service_executable=db.get_service_file(),
         project_name=service_name
     )
 
     fn = sudo
     if env.as_service is True:
-        before = ["sudo " + cmd for cmd in before]
         make_srv = "sudo " + make_srv
         fn = local
 
-    with settings(warn_only=True):
-        [fn(cmd) for cmd in before]
-
-    fn(make_srv)
+    _remove_service(service_name=service_name, build_dir=build_dir)
+    fn(make_srv)  # Make the link
 
 
 def _get_config():
@@ -245,11 +290,9 @@ def _get_build_dir():
     return env.build_dir
 
 
-def _db_setup(build_dir=False, db=None):
+def _db_setup(db=None, build_dir=True):
     """ Setup the database
 
-    :param build_dir: If this is for the build directory
-    :type build_dir: boolean
     :param db: DB Instance to set up
     :type db: cts.software.DB
     """
@@ -327,11 +370,44 @@ def _db_restart(service_name=None):
         sudo(cmd)
 
 
+def _install_locally(convert=True, build_dir=True):
+    db = env.db
+    service_name = env.local_build_name
+    if build_dir is False:
+        db = env.remote_db
+        service_name = env.project_name
+
+    with warn_only():
+        local("sudo rm -rf {directory}".format(directory=db.directory))
+        local("sudo rm -rf {directory}".format(directory=db.data_dir))
+
+    db.retrieve()
+
+    _remove_service(service_name=service_name, build_dir=build_dir)
+
+    if convert is True:
+        convert_cts3(copy=False)
+
+    _db_setup(db=db, build_dir=build_dir)
+
+    #Making service and removing service make it easier to install
+    if build_dir is True:
+        service_name
+    _make_service(service_name=service_name)
+
+    _db_start(build_dir=build_dir)
+    push_texts(build_dir=build_dir, start=False)
+    push_xq(build_dir=build_dir, start=False)
+    push_inv(build_dir=build_dir, start=False)
+
+
 # Environments related tasks
 @task
-def as_service():
+def localhost():
     """ When run before other functions, set the deployment host as localhost """
     env.as_service = True
+    _get_config()
+    env.target = env.config["localhost"]
 
 
 @task
@@ -393,23 +469,16 @@ def deploy(convert=True, localhost=False, reuse_local=False):
 
     if reuse_local is False:
     """
-    print("Downloading DB software")
-    env.db.retrieve()
 
     if convert is not True:
         convert = bool(strtobool(str(convert)))
 
-    if convert is True:
-        convert_cts3(copy=False)
+    if env.as_service is True:
+        _set_host_db()
+        _install_locally(convert=convert, build_dir=False)
+    elif env.target is not None:
+        _install_locally(convert=convert, build_dir=True)
 
-    print ("Installing locally")
-    _db_setup(build_dir=True)
-    _db_start(build_dir=True)
-    push_texts(build_dir=True, start=False)
-    push_xq(build_dir=True, start=False)
-    push_inv(build_dir=True, start=False)
-
-    if env.target is not None:
         print("Dumping DB")
         backed_up_databases = _db_backup(cts=5, db=env.db, localhost=True)
         #We don't need our DB anymore !
@@ -428,7 +497,6 @@ def deploy(convert=True, localhost=False, reuse_local=False):
         env.db.set_port(env.target["port"]["replicate"])
         env.db.update_config()
         env.remote_db.set_port(env.target["port"]["replicate"])
-        print(env.remote_db)
 
         #We copy the given config files to remote
         for path in env.db.get_config_files():
@@ -462,10 +530,8 @@ def deploy(convert=True, localhost=False, reuse_local=False):
         _make_service()
 
         _db_start(service_name=env.project_name)
+        _remove_service(service_name=env.local_build_name, build_dir=True)
         clean()
-
-    elif as_service is True:
-        pass
 
 
 @task
@@ -478,41 +544,53 @@ def clean():
 def push_texts(build_dir=True, start=True):
     """ Push Corpora to the Database """
     _init()
+    db = env.db
 
     if start is True:
         _db_start(build_dir=build_dir)
+
+    if build_dir is True:
+        db = env.remote_db
 
     documents = []
     for corpus in env.corpora:
         for resource in corpus.resources:
             documents = documents + resource.getTexts(if_exists=True)
 
-    shell.run(env.db.put(documents), _define_env(build_dir))
+    shell.run(db.put(documents), _define_env(build_dir))
 
 
 @task
 def push_xq(cts=5, build_dir=True, start=True):
     """ Push XQueries to the Database """
     _init()
+    db = env.db
 
     if start is True:
         _db_start(build_dir=build_dir)
 
-    shell.run(env.db.feedXQuery(version=int(cts)), _define_env(build_dir))
+    if build_dir is True:
+        db = env.remote_db
+
+    shell.run(db.feedXQuery(version=int(cts)), _define_env(build_dir))
 
 
 @task
 def push_inv(build_dir=True, start=True):
     """ Push inventory to the Database """
     _init()
+    db = env.db
 
     if start is True:
         _db_start(build_dir=build_dir)
 
+    if build_dir is True:
+        db = env.remote_db
+
     for corpus in env.corpora:
         for resource in corpus.resources:
             if resource.inventory.path is not None:
-                shell.run(env.db.put((resource.inventory.path, "repository/inventory")), _define_env(build_dir))
+                shell.run(db.put((resource.inventory.path, "repository/inventory")), _define_env(build_dir))
 
 
 @task

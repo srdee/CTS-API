@@ -19,13 +19,14 @@ The commands are in no particular order. If you only want to deploy an instance,
 
 4.  [Local and Remote](#local-and-remote)
   1. **Important** : [`set_hosts`](#fab-set_hosts)
-  1. **Important** : [`as_service`](#fab-as_service)
-  1. [`deploy`](#fab-deploy)
-  2. [`db_start`](db_start)
-  3. [`db_stop`](#fab-db_stop)
-  3. [`db_stop`](#fab-db_restart)
+  2. **Important** : [`as_service`](#fab-as_service)
+  3. [`deploy`](#fab-deploy)
+  4. [`db_start`](#fab-db_start)
+  5. [`db_stop`](#fab-db_stop)
+  6. [`db_restart`](#fab-db_restart)
 4.	[Remote](#remote)
-  3. rollback
+  1. [`available_version`](#fab-available_version)
+  1. rollback
 
 ##Introduction
 
