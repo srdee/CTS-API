@@ -29,10 +29,28 @@ env.build_dir = None
 env.corpora = None
 env.as_service = False
 env.config = None
+env.target = None
+env.hosts = list()
 TIMESTAMP_FORMAT = "%Y%m%d%H%M"
+env.version = datetime.now().strftime(TIMESTAMP_FORMAT)
 
 
 # Private functions
+def _set_host_db(version):
+    """ Set a remote_db according to a config file
+    """
+    remote_user = Credential()
+    remote_user.from_dic(env.target["user"])
+    env.remote_db = cts.software.helper.instantiate(
+        software=env.config["db"]["software"],
+        method=env.config["db"]["method"],
+        source_path=env.config["db"]["path"],
+        binary_dir=env.target["db"] + "/" + version + "/",
+        data_dir=env.target["data"] + "/" + version + "/",
+        download_dir=env.target["dumps"],
+        user=remote_user,
+        port=env.target["port"]["replicate"]
+    )
 
 
 def _define_env(build_dir=False):
@@ -43,9 +61,9 @@ def _define_env(build_dir=False):
     :returns: function to use for shell.run(host_fn)
     :rtype: fn
     """
-    if bool(strtobool(str(localhost))) is True:
+    if bool(strtobool(str(build_dir))) is True:
         return local
-    if env.as_service is True:
+    elif env.as_service is True:
         return local
     return run
 
@@ -150,7 +168,7 @@ def _init():
     """ Initiate the configuration """
     _get_build_dir()
     _get_config()
-    _fill_config(retrieve_init=retrieve_init)
+    _fill_config()
 
 
 def _get_build_dir():
@@ -182,7 +200,7 @@ def _db_stop(build_dir=False, db=None):
     """
     if db is None:
         db = env.db
-    shell.run(db.stop(), _define_env(localhost))
+    shell.run(db.stop(), _define_env(build_dir))
 
 
 def _db_start(build_dir=False, db=None):
@@ -195,7 +213,7 @@ def _db_start(build_dir=False, db=None):
     """
     if db is None:
         db = env.db
-    shell.run(db.start(), _define_env(localhost))
+    shell.run(db.start(), _define_env(build_dir))
 
 
 # Environments related tasks
@@ -267,11 +285,11 @@ def deploy(convert=True, localhost=False):
         convert_cts3(copy=False)
 
     print ("Installing locally")
-    _db_setup(localhost=True)
-    _db_start(localhost=True)
-    push_texts(localhost=True, start=False)
-    push_xq(localhost=True, start=False)
-    push_inv(localhost=True, start=False)
+    _db_setup(build_dir=True)
+    _db_start(build_dir=True)
+    push_texts(build_dir=True, start=False)
+    push_xq(build_dir=True, start=False)
+    push_inv(build_dir=True, start=False)
 
     if env.target is not None:
         print("Dumping DB")
@@ -284,22 +302,8 @@ def deploy(convert=True, localhost=False):
         run("mkdir -p {0}".format(env.target["data"]))
 
         #We put the db stuff out there
-        version = datetime.now().strftime(TIMESTAMP_FORMAT)
         put(local_path=env.db.file.path, remote_path=env.target["dumps"])
-
-        remote_user = Credential()
-        remote_user.from_dic(env.target["user"])
-        env.remote_db = cts.software.helper.instantiate(
-            software=env.config["db"]["software"],
-            method=env.config["db"]["method"],
-            source_path=env.config["db"]["path"],
-            binary_dir=env.target["db"] + "/" + version + "/",
-            data_dir=env.target["data"] + "/" + version + "/",
-            download_dir=env.target["dumps"],
-            user=remote_user,
-            port=env.target["port"]["replicate"]
-        )
-
+        _set_host_db(version=env.version)
         _db_setup(db=env.remote_db)
         open_shell()
 
@@ -379,61 +383,58 @@ def clean():
 
 
 @task
-def push_texts(localhost=True, start=True):
+def push_texts(build_dir=True, start=True):
     """ Push Corpora to the Database """
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+    _init()
 
     if start is True:
-        db_start(localhost=localhost)
+        _db_start(build_dir=build_dir)
 
     documents = []
     for corpus in env.corpora:
         for resource in corpus.resources:
             documents = documents + resource.getTexts(if_exists=True)
 
-    shell.run(env.db.put(documents), _define_env(localhost))
+    shell.run(env.db.put(documents), _define_env(build_dir))
 
 
 @task
-def push_xq(cts=5, localhost=True, start=True):
+def push_xq(cts=5, build_dir=True, start=True):
     """ Push XQueries to the Database """
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+    _init()
 
     if start is True:
-        db_start(localhost=localhost)
+        _db_start(build_dir=build_dir)
 
-    shell.run(env.db.feedXQuery(version=int(cts)), _define_env(localhost))
+    shell.run(env.db.feedXQuery(version=int(cts)), _define_env(build_dir))
 
 
 @task
-def push_inv(localhost=True, start=True):
+def push_inv(build_dir=True, start=True):
     """ Push inventory to the Database """
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+    _init()
 
     if start is True:
-        db_start(localhost=localhost)
+        _db_start(build_dir=build_dir)
 
     for corpus in env.corpora:
         for resource in corpus.resources:
             if resource.inventory.path is not None:
-                shell.run(env.db.put((resource.inventory.path, "repository/inventory")), _define_env(localhost))
+                shell.run(env.db.put((resource.inventory.path, "repository/inventory")), _define_env(build_dir))
 
 
 @task
-def db_stop(localhost=False):
+def db_stop():
     """ Stop the database """
-    _init(retrieve_init=False)
-    _db_stop(localhost=localhost)
+    _set_host_db()
+    _db_start(db=env.remote_db, build_dir=False)
 
 
 @task
-def db_start(localhost=False):
+def db_start():
     """ Start the database """
-    _init(retrieve_init=False)
-    _db_start(localhost=localhost)
+    _set_host_db()
+    _db_start(db=env.remote_db, build_dir=False)
 
 
 @task
@@ -468,25 +469,36 @@ def convert_cts3(copy=True):
 
 
 @task
-def db_backup(cts=5, localhost=False):
+def db_backup(cts=5):
     """ Backup dbs """
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+    _init()
 
-    return env.db.dump(fn=_define_env(localhost), cts=cts, output=env.build_dir+"/{md5}.zip")
+    if env.as_service is True or len(env.hosts) > 0:
+        _set_host_db()
+        db = env.remote_db
+        localhost = False
+    else:
+        db = env.db
+        localhost = True
+
+    return db.dump(fn=_define_env(localhost), cts=cts, output=db.download_dir+"/{md5}.zip")
 
 
 @task
 def db_restore(cts=5, localhost=False, db=None, source_dir=None):
     """ Backup dbs """
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+    _init()
 
-    if db is None:
+    if env.as_service is True or len(env.hosts) > 0:
+        _set_host_db()
+        db = env.remote_db
+        localhost = False
+    else:
         db = env.db
+        localhost = True
 
     if source_dir is None:
-        source_dir = env.build_dir
+        source_dir = db.download_dir
 
     db.restore(fn=_define_env(localhost), cts=cts, directory=source_dir)
 

@@ -64,11 +64,12 @@ class DB(object):
         self.method = method
 
         self.set_directory(binary_dir)
+        self.download_dir = download_dir
 
         if user:
             self.user = user
 
-        self.file = self._feed_file_instance(method=method, path=source_path, target=download_dir)
+        self.file = self._feed_file_instance(method=method, path=source_path, target=self.download_dir)
 
         self.data_dir = self.directory + "/data"
         if data_dir is not None:
