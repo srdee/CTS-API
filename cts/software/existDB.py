@@ -197,7 +197,7 @@ class ExistDB(DB):
         return ["/tools/jetty/etc/jetty.xml"]
 
     def get_service_file(self):
-        """ Returns path to an executable to run the database as a service 
+        """ Returns path to an executable to run the database as a service
 
         :returns: path of executable
         :rtype: str or unicode
