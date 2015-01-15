@@ -36,9 +36,13 @@ env.version = datetime.now().strftime(TIMESTAMP_FORMAT)
 
 
 # Private functions
-def _set_host_db(version):
+def _set_host_db(version=None):
     """ Set a remote_db according to a config file
     """
+
+    if version is None:
+        version = env.version
+
     remote_user = Credential()
     remote_user.from_dic(env.target["user"])
     env.remote_db = cts.software.helper.instantiate(
@@ -49,7 +53,7 @@ def _set_host_db(version):
         data_dir=env.target["data"] + "/" + version + "/",
         download_dir=env.target["dumps"],
         user=remote_user,
-        port=env.target["port"]["replicate"]
+        port=env.target["port"]["default"]
     )
 
 
@@ -66,6 +70,35 @@ def _define_env(build_dir=False):
     elif env.as_service is True:
         return local
     return run
+
+
+def _make_service(service_name=None):
+    if service_name is None:
+        service_name = env.project_name
+
+    before = [
+        "/etc/init.d/{project_name} stop".format(
+            project_name=service_name
+        ),
+        "rm /etc/init.d/{project_name}".format(
+            project_name=service_name
+        )
+    ]
+    make_srv = "ln -s {service_executable} /etc/init.d/{project_name}".format(
+        service_executable=env.remote_db.get_service_file(),
+        project_name=service_name
+    )
+
+    fn = sudo
+    if env.as_service is True:
+        before = ["sudo " + cmd for cmd in before]
+        make_srv = "sudo " + make_srv
+        fn = local
+
+    with settings(warn_only=True):
+        [fn(cmd) for cmd in before]
+
+    fn(make_srv)
 
 
 def _get_config():
@@ -190,30 +223,73 @@ def _db_setup(build_dir=False, db=None):
     shell.run(db.setup(), _define_env(build_dir))
 
 
-def _db_stop(build_dir=False, db=None):
+def _db_stop(build_dir=False, db=None, service_name=None):
     """ Stop the database
 
     :param build_dir: If this is for the build directory
     :type build_dir: boolean
     :param db: DB Instance to set up
     :type db: cts.software.DB
+    :param service_name: Name of the service to start
+    :type service_name: str or unicode
     """
     if db is None:
         db = env.db
-    shell.run(db.stop(), _define_env(build_dir))
+
+    if build_dir is True:
+        shell.run(db.stop(), local)
+    else:
+        if service_name is None:
+            service_name = env.project_name
+        cmd = "/etc/init.d/{service_name} stop".format(service_name=service_name)
+        if env.as_service is True:
+            local("sudo " + cmd)
+        else:
+            sudo(cmd)
 
 
-def _db_start(build_dir=False, db=None):
+def _db_start(build_dir=False, db=None, service_name=None):
     """ Start the database
 
     :param build_dir: If this is for the build directory
     :type build_dir: boolean
     :param db: DB Instance to set up
     :type db: cts.software.DB
+    :param service_name: Name of the service to start
+    :type service_name: str or unicode
     """
     if db is None:
         db = env.db
-    shell.run(db.start(), _define_env(build_dir))
+
+    if build_dir is True:
+        shell.run(db.start(), local)
+    else:
+        if service_name is None:
+            service_name = env.project_name
+        cmd = "/etc/init.d/{service_name} start".format(service_name=service_name)
+        if env.as_service is True:
+            local("sudo " + cmd)
+        else:
+            sudo(cmd)
+
+
+def _db_restart(service_name=None):
+    """ Restart the database
+
+    :param build_dir: If this is for the build directory
+    :type build_dir: boolean
+    :param db: DB Instance to set up
+    :type db: cts.software.DB
+    :param service_name: Name of the service to start
+    :type service_name: str or unicode
+    """
+    if service_name is None:
+        service_name = env.project_name
+    cmd = "/etc/init.d/{service_name} start".format(service_name=service_name)
+    if env.as_service is True:
+        local("sudo " + cmd)
+    else:
+        sudo(cmd)
 
 
 # Environments related tasks
@@ -321,18 +397,10 @@ def deploy(convert=True, localhost=False):
         for backed_up_database in backed_up_databases:
             put(local_path=backed_up_database[0], remote_path=env.target["dumps"])   # We upload the files on the other end
 
-        with settings(warn_only=True):
-            sudo("/etc/init.d/{project_name} stop".format(
-                project_name=env.replicate_name
-            ))
-            sudo("rm /etc/init.d/{project_name}".format(
-                project_name=env.replicate_name
-            ))
+        _make_service(service_name=env.replicate_name)
 
-        sudo("ln -s {service_executable} /etc/init.d/{project_name}".format(
-            service_executable=env.remote_db.get_service_file(),
-            project_name=env.replicate_name
-        ))
+        _db_start(service_name=env.replicate_name)
+
         sudo("/etc/init.d/{project_name} start".format(
             project_name=env.replicate_name
         ))
@@ -355,18 +423,8 @@ def deploy(convert=True, localhost=False):
                 remote_path=env.remote_db.directory + path
             )
 
-        with settings(warn_only=True):
-            sudo("/etc/init.d/{project_name} stop".format(
-                project_name=env.project_name
-            ))
-            sudo("rm /etc/init.d/{project_name}".format(
-                project_name=env.project_name
-            ))
+        _make_service()
 
-        sudo("ln -s {service_executable} /etc/init.d/{project_name}".format(
-            service_executable=env.remote_db.get_service_file(),
-            project_name=env.project_name
-        ))
         sudo("/etc/init.d/{project_name} start".format(
             project_name=env.project_name
         ))
@@ -469,12 +527,12 @@ def convert_cts3(copy=True):
 
 
 @task
-def db_backup(cts=5):
+def db_backup(cts=5, version=None):
     """ Backup dbs """
     _init()
 
     if env.as_service is True or len(env.hosts) > 0:
-        _set_host_db()
+        _set_host_db(version=version)
         db = env.remote_db
         localhost = False
     else:
@@ -501,5 +559,33 @@ def db_restore(cts=5, localhost=False, db=None, source_dir=None):
         source_dir = db.download_dir
 
     db.restore(fn=_define_env(localhost), cts=cts, directory=source_dir)
+
+
+@task
+def available_versions():
+    _init()
+    values = run("ls -l {dir}".format(dir=env.target["data"]), quiet=True)
+    values = [str(line.split()[-1]) for line in values.split("\n")]
+    values.sort()
+    if values == 0:
+        print ("No version available")
+    else:
+        if values > 1:
+            print ("Last version : {last}".format(last=values[-1]))
+            print ("Other versions :")
+        else:
+            print ("Available versions :")
+        for v in values[0:-1]:
+            if len(str(v)) == 12:
+                print ("({year}/{month}/{day} {hour}:{minute}) - Name : {version}".format(
+                    year=v[0:4],
+                    month=v[4:6],
+                    day=v[6:8],
+                    hour=v[8:10],
+                    minute=v[10:],
+                    version=v
+                ))
+            else:
+                print (v)
 
 _get_build_dir()
