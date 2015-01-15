@@ -39,13 +39,11 @@ class Credential(object):
 
 class DB(object):
     """Abstraction of a DB class"""
-    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None, port=8080):
+    def __init__(self, software, method, path, data_dir=None, target="./", user=None, port=8080):
         """ Initiate the object
 
         :param software: Name of the software
         :type software: unicode or str
-        :param version: Version of the software
-        :type version: unicode or str
         :param method: Source type, should be git or url or local
         :type method: unicode or str
         :param data_dir: Path to data directory for the database
@@ -57,7 +55,6 @@ class DB(object):
 
         """
         self.software = software
-        self.version = self._version_tuple(version)
         self.method = method
         self.path = path
         if user:
@@ -69,17 +66,6 @@ class DB(object):
         if data_dir is not None:
             self.data_dir = data_dir
         self.set_port(port)
-
-    def _version_tuple(self, version):
-        """ Return a tuple representing the version for further tests
-
-        :param version: String representation of the version
-        :type  version: unicode or str
-        :returns: numeric representation using tuple
-        :rtype: tuple
-
-        """
-        return tuple([int(version_part) for version_part in version.split(".") if version_part.isdigit()])
 
     def _feed_file_instance(self, method, path, target):
         """ Returns a File() object corresponding to Git, Local or URL resource

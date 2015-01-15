@@ -6,8 +6,8 @@ from ..db import DB
 
 class BaseX(DB):
     """Implementation of DB for BaseX"""
-    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None, port=8080):
-        super(BaseX, self).__init__(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user, port=8080)
+    def __init__(self, software, method, path, data_dir=None, target="./", user=None, port=8080):
+        super(BaseX, self).__init__(software=software, method=method, path=path, data_dir=data_dir, target=target, user=user, port=8080)
 
     def setup(self):
         """ Returns a string about how to setup the BaseXServer """

@@ -13,8 +13,8 @@ from ..xmls.texts import Text
 
 class ExistDB(DB):
     """Implementation of DB for ExistDB"""
-    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None, port=8080):
-        super(ExistDB, self).__init__(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user, port=port)
+    def __init__(self, software, method, path, data_dir=None, target="./", user=None, port=8080):
+        super(ExistDB, self).__init__(software=software, method=method, path=path, data_dir=data_dir, target=target, user=user, port=port)
 
     def setup(self):
         """ Returns a string to do a cmd """
