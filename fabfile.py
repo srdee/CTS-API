@@ -23,26 +23,19 @@ from cts.resources import Corpus
 # globals
 env.project_name = 'cts-api'
 env.replicate_name = env.project_name + "-replicate"
-env.prod = False
 env.use_ssh_config = True
-env.path = '/opt/webapps/' + env.project_name
-env.user = os.getenv("USER")
-env.git_version = 1.9
+
 env.build_dir = None
 env.corpora = None
+env.as_service = False
+env.config = None
 TIMESTAMP_FORMAT = "%Y%m%d%H%M"
 
 
-# environments
-@task
-def set_hosts(host):
-    _get_config()
-    # Update env.hosts instead of calling execute()
-    env.hosts = [host]
-    env.target = env.config["hosts"][host]
+# Private functions
 
 
-def _define_env(localhost=False):
+def _define_env(build_dir=False):
     """ Define the function to be used
 
     :param env: a string representing an environment
@@ -51,6 +44,8 @@ def _define_env(localhost=False):
     :rtype: fn
     """
     if bool(strtobool(str(localhost))) is True:
+        return local
+    if env.as_service is True:
         return local
     return run
 
@@ -98,8 +93,38 @@ def _rewriting_dic(dic, modulo=""):
     return ret
 
 
-def _fill_config(retrieve_init=True):
-    """ Create needed instances """
+def _corpora_config(force=False):
+    """ Use corpora config to feed config
+
+    :param force: Force retrieval of files if folder exists
+    :type force: boolean
+    """
+    if not env.config:
+        _get_config()
+    env.corpora = [
+        Corpus(
+            method=r["method"],
+            path=r["path"],
+            resources=_rewriting_list(r["resources"], modulo="data"),
+            target=_get_build_dir() + "/data",
+            retrieve_init=False
+        ) for r in env.config["repositories"]
+    ]
+    try:
+        for corpus in env.corpora:
+            corpus.retrieve()
+    except:
+        if force is True:
+            shutil.rmtree(_get_build_dir() + "/data")
+            _corpora_config()
+        else:
+            print("{folder} already exists".format(_get_build_dir() + "/data"))
+
+
+def _db_config():
+    """ Create DB instance """
+    if not env.config:
+        _get_config()
     user = Credential()
     user.from_dic(env.config["db"]["user"])
 
@@ -113,20 +138,18 @@ def _fill_config(retrieve_init=True):
         user=user
     )
     env.db.set_directory(env.build_dir + "db/conf")
-    env.corpora = [
-        Corpus(
-            method=r["method"],
-            path=r["path"],
-            resources=_rewriting_list(r["resources"], modulo="data"),
-            target=env.build_dir + "/data",
-            retrieve_init=retrieve_init
-        ) for r in env.config["repositories"]
-    ]
 
 
-def _init(retrieve_init=True):
-    _get_config()
+def _fill_config():
+    """ Create needed instances """
+    _db_config()
+    _corpora_config()
+
+
+def _init():
+    """ Initiate the configuration """
     _get_build_dir()
+    _get_config()
     _fill_config(retrieve_init=retrieve_init)
 
 
@@ -136,27 +159,62 @@ def _get_build_dir():
     return env.build_dir
 
 
-def _db_setup(localhost=False, db=None):
-    """ Setup the database """
+def _db_setup(build_dir=False, db=None):
+    """ Setup the database
+
+    :param build_dir: If this is for the build directory
+    :type build_dir: boolean
+    :param db: DB Instance to set up
+    :type db: cts.software.DB
+    """
     if db is None:
         db = env.db
-    shell.run(db.setup(), _define_env(localhost))
+    shell.run(db.setup(), _define_env(build_dir))
 
 
-def _db_stop(localhost=False, db=None):
-    """ Stop the database """
+def _db_stop(build_dir=False, db=None):
+    """ Stop the database
+
+    :param build_dir: If this is for the build directory
+    :type build_dir: boolean
+    :param db: DB Instance to set up
+    :type db: cts.software.DB
+    """
     if db is None:
         db = env.db
     shell.run(db.stop(), _define_env(localhost))
 
 
-def _db_start(localhost=False, db=None):
-    """ Start the database """
+def _db_start(build_dir=False, db=None):
+    """ Start the database
+
+    :param build_dir: If this is for the build directory
+    :type build_dir: boolean
+    :param db: DB Instance to set up
+    :type db: cts.software.DB
+    """
     if db is None:
         db = env.db
     shell.run(db.start(), _define_env(localhost))
 
 
+# Environments related tasks
+@task
+def as_service():
+    """ When run before other functions, set the deployment host as localhost """
+    env.as_service = True
+
+
+@task
+def set_hosts(host):
+    """ Set the remote host to deploy to """
+    _get_config()
+    # Update env.hosts instead of calling execute()
+    env.hosts = [host]
+    env.target = env.config["hosts"][host]
+
+
+#Þests Related tasks
 @task
 def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
     """ Test the CTS-Compliancy of our data.
@@ -173,8 +231,7 @@ def test_cts(nosuccess=False, ignore_replication=False, no_color=False):
     if no_color is not False:
         no_color = bool(strtobool(str(no_color)))
 
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+    _corpora_config(force=True)
 
     results = []
 
@@ -207,7 +264,7 @@ def deploy(convert=True, localhost=False):
         convert = bool(strtobool(str(convert)))
 
     if convert is True:
-        convert_cts3()
+        convert_cts3(copy=False)
 
     print ("Installing locally")
     _db_setup(localhost=True)
@@ -216,7 +273,7 @@ def deploy(convert=True, localhost=False):
     push_xq(localhost=True, start=False)
     push_inv(localhost=True, start=False)
 
-    if localhost is False:
+    if env.target is not None:
         print("Dumping DB")
         backed_up_databases = db_backup(cts=5, localhost=True)
         #We don't need our DB anymore !
@@ -314,6 +371,9 @@ def deploy(convert=True, localhost=False):
         ))
         clean()
 
+    elif as_service is True:
+        pass
+
 
 @task
 def clean():
@@ -380,16 +440,34 @@ def db_start(localhost=False):
 
 
 @task
-def convert_cts3():
-    """ Convert CTS3 inventory files to CTS5 Inventory files """
-    if not hasattr(env, "db"):
-        _init(retrieve_init=False)
+def convert_cts3(copy=True):
+    """ Convert CTS3 inventory files to CTS5 Inventory files
+
+    :param copy: If not false, copy the result of conversion in env.build_dir/../ by default or to the given folder
+    :type copy: string or boolean
+    """
+
+    _corpora_config()
+
+    if copy is True:
+        directory = env.build_dir + "/../"
+    else:
+        directory = copy
+
     i = 0
+    converted = list()
     for corpus in env.corpora:
         for resource in corpus.resources:
             if resource.inventory.convert() is not None:
                 i += 1
+                converted.append(resource.inventory.path)
                 print ("{0} inventory converted".format(i))
+
+    if directory is not False:
+        for inventory in converted:
+            new_inventory = "{directory}/{filename}".format(directory=directory, filename=inventory.split("/")[-1])
+            shutil.copyfile(inventory, new_inventory)
+            print ("{inventory} converted version can be found here : {new_inventory}".format(inventory=inventory, new_inventory=new_inventory))
 
 
 @task
@@ -414,4 +492,5 @@ def db_restore(cts=5, localhost=False, db=None, source_dir=None):
         source_dir = env.build_dir
 
     db.restore(fn=_define_env(localhost), cts=cts, directory=source_dir)
-    print("Done.")
+
+_get_build_dir()
