@@ -132,12 +132,12 @@ def _db_config():
     env.db = cts.software.helper.instantiate(
         software=env.config["db"]["software"],
         method=env.config["db"]["method"],
-        path=env.config["db"]["path"],
+        source_path=env.config["db"]["path"],
+        binary_dir=env.build_dir + "/db/conf",
         data_dir=env.build_dir + "db/data",
-        target=env.build_dir + "/db",
+        download_dir=env.build_dir + "/db",
         user=user
     )
-    env.db.set_directory(env.build_dir + "db/conf")
 
 
 def _fill_config():
@@ -292,15 +292,13 @@ def deploy(convert=True, localhost=False):
         env.remote_db = cts.software.helper.instantiate(
             software=env.config["db"]["software"],
             method=env.config["db"]["method"],
-            path=env.config["db"]["path"],
+            source_path=env.config["db"]["path"],
+            binary_dir=env.target["db"] + "/" + version + "/",
             data_dir=env.target["data"] + "/" + version + "/",
-            target=env.target["dumps"],
+            download_dir=env.target["dumps"],
             user=remote_user,
             port=env.target["port"]["replicate"]
         )
-
-        env.remote_db.set_directory(env.target["db"] + "/" + version + "/")
-        env.remote_db.data_dir = env.target["data"] + "/" + version + "/"
 
         _db_setup(db=env.remote_db)
         open_shell()

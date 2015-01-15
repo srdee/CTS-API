@@ -39,15 +39,21 @@ class Credential(object):
 
 class DB(object):
     """Abstraction of a DB class"""
-    def __init__(self, software, method, path, data_dir=None, target="./", user=None, port=8080):
+    def __init__(self, software, method, source_path, binary_dir, data_dir=None, download_dir="./", user=None, port=8080):
         """ Initiate the object
 
         :param software: Name of the software
         :type software: unicode or str
         :param method: Source type, should be git or url or local
         :type method: unicode or str
+        :param source_path: Place for binary retrieval
+        :type source_path: unicode or str
+        :param binary_dir: Path for installation of the binaries
+        :type binary_dir: unicode or str
         :param data_dir: Path to data directory for the database
         :type data_dir: unicode or str
+        :param download_dir: Path for downloading binaries
+        :type download_dir: unicode or str
         :param path: Path to which source-downloader needs to query
         :type path: unicode or str
         :param target: Path where file needs to be deployed
@@ -56,11 +62,13 @@ class DB(object):
         """
         self.software = software
         self.method = method
-        self.path = path
+
+        self.set_directory(binary_dir)
+
         if user:
             self.user = user
-        self.file = self._feed_file_instance(method=method, path=path, target=target)
-        self.set_directory()
+
+        self.file = self._feed_file_instance(method=method, path=source_path, target=download_dir)
 
         self.data_dir = self.directory + "/data"
         if data_dir is not None:
