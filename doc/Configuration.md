@@ -19,6 +19,7 @@ Capitains Toolkit configuration
   2. [Host](#host)
   3. [Ports](#ports)
   4. [Example](#example-2)
+6. [Local installation](#localhost-installation)
 6. [Retrieval Methods](#retrieval-methods)
 7. [Credentials](#database-credentials)
 
@@ -202,6 +203,35 @@ We have one host named pompei that is configured and ready to deploy.
 If pompei is a ssh alias we can deploy the database using `fab set_hosts:pompei deploy`, exist.jar will be put in /home/pompei/dumps, installed in /opt/db, and its data is stored in /opt/data. 
 The database access credentials (which as you can see aren't very secure) are admin:password.
 API's public port is 8080.  The other port, 8090, we use for tests, rollbacks and deployements.
+
+##Localhost installation
+
+The local host configuration is at the root of the json file. Its key name is `localhost`.
+
+**Parameters**
+
+| Parameter key | Type | Available Values | Description
+|---------------|------|------------------|-------------
+|db             |string|                  | Path on the local server to install the database software 
+|data           |string|                  | Path on the local server to save database data
+|user           |json  |                  | See [Credentials](#database-credentials)
+|port           |int   |                  | Port on which to run your database
+
+**Example**
+
+```javascript
+"localhost" : {
+	"db" : "~/cts-api/db",
+	"data" : "~/cts-api/data",
+	"user" : {
+		"name" : "admin",
+		"password" : "password"
+	},
+	"port" : 8080
+}
+```
+
+The following configuration will install the software in ~/cts-api/db and put the data in ~/cts-api/data
 
 ##Retrieval Methods
 There is three retrieval methods available. They define how you will connect to your database software, text repository, etc. If your texts are stored locally, use `local` instead of the others so you aren't repeatedly downloading them from the web.
