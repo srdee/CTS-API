@@ -8,22 +8,24 @@ The commands are in no particular order. If you only want to deploy an instance,
 2.	[Tests](#tests)
   1. [`test_cts`](#fab-test_cts)
 3.	[Local Only](#local-only)
-  1. [`db_start`](db_start)
-  2. [`db_stop`](#fab-db_stop)
+  8. [`convert_cts3`](#fab-convert_cts3)
+  9. [`clean`](#fab-clean)
   3. [`db_restore`](#fab-db_restore)
   4. [`db_backup`](#fab-db_backup)
   5. [`push_texts`](#fab-push_texts)
+
   6. [`push_xq`](#fab-push_xq)
   7. [`push_inv`](#fab-push_inv)
-  8. [`convert_cts3`](#fab-convert_cts3)
-  9. [`clean`](#fab-clean)
-4.	[Remote](#remote)
+
+4.  [Local and Remote](#local-and-remote)
   1. **Important** : [`set_hosts`](#fab-set_hosts)
-  2. [`deploy`](#fab-deploy)
+  1. **Important** : [`as_service`](#fab-as_service)
+  1. [`deploy`](#fab-deploy)
+  2. [`db_start`](db_start)
+  3. [`db_stop`](#fab-db_stop)
+  3. [`db_stop`](#fab-db_restart)
+4.	[Remote](#remote)
   3. rollback
-  4. stop
-  5. start
-  6. restart
 
 ##Introduction
 
@@ -138,7 +140,7 @@ Push texts in corpora to the database
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|localhost			 | True	   | If set to false, push to an defined environement
+|localhost			 | True	   | If set to false, push to a defined environment
 
 **Warning** : This behaviour will be changed soon.
 
@@ -156,8 +158,8 @@ Push the XQuery to the database
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|localhost			 | True	   | If set to false, push to an defined environement
-|cts 			     | 5       | Version of the CTS API (3 or 5)
+|localhost	    		 | True	   | If set to false, push to a defined environment
+|cts 			           | 5       | Version of the CTS API (3 or 5)
 
 **Warning** : This behaviour will be changed soon.
 
@@ -175,7 +177,7 @@ Push inventory to the database
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|localhost			 | True	   | If set to false, push to an defined environement
+|localhost		     	 | True	   | If set to false, push to a defined environment
 
 **Warning** : This behaviour will be changed soon.
 
@@ -190,9 +192,17 @@ Push inventory to the database
 
 Convert CTS3 Inventory to CTS5
 
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|copy                | True    | Path where you wish to save converted inventories.
+
 **Examples**
 
-`fab convert_cts3`
+`fab convert_cts3:copy="/home/username/Documents/` will save every converted inventories in `/home/username/Documents/`
+
+`fab convert_cts3` wil save it in the `build` folder of your Capitains Toolkit folder root
 
 ###fab clean
 
@@ -232,9 +242,9 @@ Deploy the CTS-API and its text to a given host
 
 | Parameter          | Default 		  | Description 
 |--------------------|----------------|-------------
-|convert 			 | True   		  | If set to False, does not convert cts3 to cts5
-|localhost			 | False  		  | 
-|*as_service		 | NotImplemented | Not implemented yet
+|convert 		       	 | True   		  | If set to False, does not convert cts3 to cts5
+|localhost	    		 | False  		  | 
+|*as_service	    	 | NotImplemented | Not implemented yet
 
 **Examples**
 
