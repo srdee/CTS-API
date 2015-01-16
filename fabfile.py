@@ -37,6 +37,36 @@ env.version = datetime.now().strftime(TIMESTAMP_FORMAT)
 
 
 # Private functions
+def _clean_directory_path(string):
+    string = string.replace("//", "/")
+    if string[-1] == "/":
+        string = string[:-1]
+    return string
+
+
+def _get_user(local_fn=True):
+    if local_fn is True:
+        return os.getenv('USERNAME')
+    else:
+        return run("whoami")
+
+
+def _chown(directories, local_fn=True):
+    user = _get_user(local_fn=local_fn)
+
+    cmds = ["chown -R {user} {directory}".format(user=user, directory=_clean_directory_path(directory)) for directory in directories]
+    if local_fn is True:
+        fn = local
+
+    fn = sudo
+    if local_fn is True or env.as_service is True:
+        cmds = ["sudo " + cmd for cmd in cmds]
+        fn = local
+
+    with warn_only():
+        [fn(cmd) for cmd in cmds]
+
+
 def _set_host_db(version=None):
     """ Set a remote_db according to a config file
 
@@ -318,9 +348,9 @@ def _db_stop(local_fn=False, db=None, service_name=None):
         service_name = env.project_name
     cmd = "/etc/init.d/{service_name} stop".format(service_name=service_name)
     if env.as_service is True or local_fn is True:
-        local("sudo " + cmd)
+        local(cmd)
     else:
-        sudo(cmd)
+        run(cmd)
 
 
 def _db_start(local_fn=False, db=None, service_name=None):
@@ -341,9 +371,9 @@ def _db_start(local_fn=False, db=None, service_name=None):
 
     cmd = "/etc/init.d/{service_name} start".format(service_name=service_name)
     if env.as_service is True or local_fn is True:
-        local("sudo " + cmd)
+        local(cmd)
     else:
-        sudo(cmd)
+        run(cmd)
 
 
 def _db_restart(service_name=None):
@@ -355,10 +385,10 @@ def _db_restart(service_name=None):
     if service_name is None:
         service_name = env.project_name
     cmd = "/etc/init.d/{service_name} restart".format(service_name=service_name)
-    if env.as_service is True:
-        local("sudo " + cmd)
+    if env.as_service is True or local_fn is True:
+        local(cmd)
     else:
-        sudo(cmd)
+        run(cmd)
 
 
 def _push_texts(db, build_dir):
@@ -408,6 +438,11 @@ def _install_locally(convert=True, build_dir=True):
     _make_service(service_name=service_name, local_fn=True, db=db)
     if build_dir is True:
         env.as_service = False
+
+    if service_name == env.local_build_name:
+        _chown(directories=[env.build_dir], local_fn=True)
+    else:
+        _chown(directories=[db.directory, db.data_dir], local_fn=True)
 
     _db_start(service_name=service_name, local_fn=True)  # As of @0036d8a, we make a service from the building dir to avoid opening a new terminal session
     _push_texts(db=db, build_dir=build_dir)
@@ -729,5 +764,6 @@ def available_versions():
                 ))
             else:
                 print (v)
+
 
 _get_build_dir()

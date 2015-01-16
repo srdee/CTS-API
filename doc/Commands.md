@@ -165,7 +165,6 @@ Deploy the CTS-API and its text to a given host
 | Parameter          | Default 		  | Description 
 |--------------------|----------------|-------------
 |convert 		       	 | True   		  | If set to False, does not convert cts3 to cts5
-|localhost	    		 | False  		  | 
 
 **Examples**
 
