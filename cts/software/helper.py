@@ -5,13 +5,11 @@ from .baseX import BaseX
 from .existDB import ExistDB
 
 
-def instantiate(software, version, method, path, target="./", user=None):
+def instantiate(software, method, source_path, binary_dir, data_dir=None, download_dir="./", user=None, port=8080):
     """ Initiate the object
 
     :param software: Name of the software
     :type software: unicode or str
-    :param version: Version of the software
-    :type version: unicode or str
     :param source: Source type, should be git or url or local
     :type source: unicode or str
     :param path: Path to which source-downloader needs to query
@@ -22,8 +20,8 @@ def instantiate(software, version, method, path, target="./", user=None):
     :rtype: DB subclass
     """
     if software.lower() == "existdb":
-        return ExistDB(software=software, version=version, method=method, path=path, target=target, user=user)
+        return ExistDB(software=software, method=method, source_path=source_path, binary_dir=binary_dir, data_dir=data_dir, download_dir=download_dir, user=user, port=port)
     elif software.lower() == "basex":
-        return BaseX(software=software, version=version, method=method, path=path, target=target, user=user)
+        return BaseX(software=software, method=method, source_path=source_path, binary_dir=binary_dir, data_dir=data_dir, download_dir=download_dir, user=user, port=port)
     else:
         raise NotImplemented("This DB software is not implemented yet.")

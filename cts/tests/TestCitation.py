@@ -1,11 +1,11 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import cts.xml.texts
+import cts.xmls.texts
 from nose.tools import assert_is_instance
 
 
 def TestNamespaceURI():
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
@@ -41,7 +41,7 @@ def TestNamespaceURI():
 
 def TestNamespaceWarnings():
     #Test when there is one element with no namespace
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
@@ -52,7 +52,7 @@ def TestNamespaceWarnings():
     assert "has no namespaces shortcuts like 'tei:'" in errors[0], "Scope with no namespace shortcut in xPath should have a message about it"
 
     #Test when there is one element with unknown namespace
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/google:TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
@@ -63,7 +63,7 @@ def TestNamespaceWarnings():
     assert "has namespaces shortcuts with no bindings" in errors[0], "Scope with unknown namespace shortcut in xPath should have a message about it"
 
     #Test when there is one element with no namespace
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
@@ -74,7 +74,7 @@ def TestNamespaceWarnings():
     assert "has no namespaces shortcuts like 'tei:'" in errors[0], "xpath with no namespace shortcut in xPath should have a message about it"
 
     #Test when there is one element with unknown namespace
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/google:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
@@ -85,7 +85,7 @@ def TestNamespaceWarnings():
     assert "has namespaces shortcuts with no bindings" in errors[0], "xpath with unknown namespace shortcut in xPath should have a message about it"
 
     #Test when there is one element with unknown namespace
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
@@ -96,14 +96,14 @@ def TestNamespaceWarnings():
 
 
 def TestChildrenRetriever():
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="<citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
         }
     )
     assert c.children is None, "When there is no child, there should be no child"
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\">
         <citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>
         </citation>
@@ -113,7 +113,7 @@ def TestChildrenRetriever():
         },
         version=3
     )
-    assert_is_instance(c.children, cts.xml.texts.Citation), """ Citation using CTS3 have children founds """
+    assert_is_instance(c.children, cts.xmls.texts.Citation), """ Citation using CTS3 have children founds """
 
 
 def TestReplication():
@@ -139,7 +139,7 @@ def TestReplication():
   </teiHeader>
   </TEI>
     """
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"book\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\">
         <citation label=\"chapter\" xpath=\"/tei:div2[@n='?']\" scope=\"/tei:TEI.2/tei:text/tei:body/\"/>
         </citation>
@@ -170,7 +170,7 @@ def TestAndOperator():
   </text>
   </TEI.2>
     """
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"book\" xpath=\"/tei:div1[@n='?' and @type='book']\" scope=\"/tei:TEI.2/tei:text/tei:body/\" />""",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
@@ -179,7 +179,7 @@ def TestAndOperator():
     status, error = c.test(target=xml)
     assert (False not in status and len(error) == 0) is True, """ [@attr1 and @attr2] should not fail when xml is good """
 
-    c = cts.xml.texts.Citation(
+    c = cts.xmls.texts.Citation(
         xml="""<citation xmlns="http://chs.harvard.edu/xmlns/cts3/ti" label=\"book\" xpath=\"/tei:div1[@n='?' and @type='error_maker']\" scope=\"/tei:TEI.2/tei:text/tei:body/\" />""",
         namespaces={
             "tei:": "{http://www.tei-c.org/ns/1.0}"
