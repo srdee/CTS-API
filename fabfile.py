@@ -62,7 +62,6 @@ def _set_host_db(version=None):
             port=env.target["port"]["default"]
         )
     else:
-        print ("Remote db is the new green")
         env.remote_db = cts.software.helper.instantiate(
             software=env.config["db"]["software"],
             method=env.config["db"]["method"],
@@ -564,49 +563,39 @@ def clean():
 @task
 def push_texts():
     """ Push Corpora to the Database """
-    _init()
+    _set_host_db()
+    _corpora_config()
     db = env.remote_db
-    build_dir = False
-
-    if env.as_service is True:
-        build_dir = True
 
     with warn_only():
-        _db_start(build_dir=build_dir)
+        _db_start(build_dir=False, service_name=env.project_name)
 
-    _push_texts(db=db, build_dir=build_dir)
+    _push_texts(db=db, build_dir=False)
 
 
 @task
-def push_xq(cts=5, build_dir=True):
+def push_xq(cts=5):
     """ Push XQueries to the Database """
-    _init()
+    _set_host_db()
     db = env.remote_db
-    build_dir = False
-
-    if env.as_service is True:
-        build_dir = True
 
     with warn_only():
-        _db_start(build_dir=build_dir, service_name=env.project_name)
+        _db_start(build_dir=False, service_name=env.project_name)
 
-    _push_xq(db=db, build_dir=build_dir, cts=int(cts))
+    _push_xq(db=db, build_dir=False, cts=int(cts))
 
 
 @task
-def push_inv(build_dir=True):
+def push_inv():
     """ Push inventory to the Database """
-    _init()
+    _set_host_db()
+    _corpora_config()
     db = env.remote_db
-    build_dir = False
-
-    if env.as_service is True:
-        build_dir = True
 
     with warn_only():
-        _db_start(build_dir=build_dir, service_name=env.project_name)
+        _db_start(build_dir=False, service_name=env.project_name)
 
-    _push_inv(db=db, build_dir=build_dir)
+    _push_inv(db=db, build_dir=False)
 
 
 @task
