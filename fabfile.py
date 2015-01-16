@@ -683,7 +683,7 @@ def db_backup(cts=5, version=None):
 
 
 @task
-def db_restore(cts=5, db=None, source_dir=None):
+def db_restore(cts=5, source_dir=None):
     """ Restore dbs """
     _init()
     localhost = False
