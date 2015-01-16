@@ -13,14 +13,13 @@ from ..xmls.texts import Text
 
 class ExistDB(DB):
     """Implementation of DB for ExistDB"""
-    def __init__(self, software, version, method, path, data_dir=None, target="./", user=None, port=8080):
-        super(ExistDB, self).__init__(software=software, version=version, method=method, path=path, data_dir=data_dir, target=target, user=user, port=port)
+    def __init__(self, software, method, source_path, binary_dir, data_dir=None, download_dir="./", user=None, port=8080):
+        super(ExistDB, self).__init__(software=software, method=method, source_path=source_path, binary_dir=binary_dir, data_dir=data_dir, download_dir=download_dir, user=user, port=port)
 
     def setup(self):
         """ Returns a string to do a cmd """
         return [
             shell.Separator(),
-            shell.Helper("java -jar {0} -console".format(self.file.path)),
             shell.Request("Select target path [{0}]".format(os.path.abspath(__file__))),
             shell.Parameter("{0}".format(self.directory)),
             shell.Request("Data dir:  [webapp/WEB-INF/data]"),
@@ -33,7 +32,8 @@ class ExistDB(DB):
             shell.Request("Maximum memory in mb: [1024]"),
             shell.Parameter("1024"),
             shell.Request("Cache memory in mb: [128]"),
-            shell.Parameter("128")
+            shell.Parameter("128"),
+            shell.Command("java -jar {0} -console".format(self.file.path))
         ]
 
     def start(self):
@@ -197,7 +197,7 @@ class ExistDB(DB):
         return ["/tools/jetty/etc/jetty.xml"]
 
     def get_service_file(self):
-        """ Returns path to an executable to run the database as a service 
+        """ Returns path to an executable to run the database as a service
 
         :returns: path of executable
         :rtype: str or unicode

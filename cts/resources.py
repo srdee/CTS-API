@@ -91,22 +91,11 @@ class Corpus(object):
 
         self.file = self._get_file()
 
+        self.resources = list()
+        self._resources = resources
+
         if retrieve_init is True:
             self.retrieve()
-
-        if isinstance(resources, list) and len([r for r in resources if isinstance(r, Resource)]) > 0:
-            self.resources = resources
-        elif isinstance(resources, list) and len([r for r in resources if isinstance(r, dict)]) > 0:
-            self.resources = [
-                Resource(
-                    name=resource["name"],
-                    texts=resource["texts"],
-                    inventory=resource["inventory"],
-                    rewriting_rules=resource["rewriting_rules"]
-                ) for resource in resources
-            ]
-        else:
-            raise TypeError("Value for resources is not a dict or a list of Resource object")
 
     def _get_file(self):
         """ Instantiate self.file
@@ -123,4 +112,23 @@ class Corpus(object):
         :returns: Indicator of success
         :rtype: boolean
         """
-        return self.file.get()
+        self.file.get()
+        self._instantiate_resources()
+
+    def instantiate_resources(self, resources=None):
+        if resources is None:
+            resources = self._resources
+
+        if isinstance(resources, list) and len([r for r in resources if isinstance(r, Resource)]) > 0:
+            self.resources = resources
+        elif isinstance(resources, list) and len([r for r in resources if isinstance(r, dict)]) > 0:
+            self.resources = [
+                Resource(
+                    name=resource["name"],
+                    texts=resource["texts"],
+                    inventory=resource["inventory"],
+                    rewriting_rules=resource["rewriting_rules"]
+                ) for resource in resources
+            ]
+        else:
+            raise TypeError("Value for resources is not a dict or a list of Resource object")
