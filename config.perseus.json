@@ -32,5 +32,14 @@
 			]
 
 		}
-	]
+	],
+	"localhost" : {
+		"db" : "~/cts-api/db",
+		"data" : "~/cts-api/data",
+		"user" : {
+			"name" : "admin",
+			"password" : "password"
+		},
+		"port" : 8080
+	}
 }

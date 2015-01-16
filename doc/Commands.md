@@ -4,29 +4,27 @@ Capitains Toolkit commands
 The commands are in no particular order. If you only want to deploy an instance, see [`fab deploy`](#fab-deploy) and the [configuration documentation](./Configuration.md)
 
 ##Summary
-1.	[Introduction](#introduction)
-2.	[Tests](#tests)
+1. [Introduction](#introduction)
+2. [Tests](#tests)
   1. [`test_cts`](#fab-test_cts)
-3.	[Local Only](#local-only)
-  8. [`convert_cts3`](#fab-convert_cts3)
-  9. [`clean`](#fab-clean)
-  3. [`db_restore`](#fab-db_restore)
-  4. [`db_backup`](#fab-db_backup)
-  5. [`push_texts`](#fab-push_texts)
-
-  6. [`push_xq`](#fab-push_xq)
-  7. [`push_inv`](#fab-push_inv)
-
-4.  [Local and Remote](#local-and-remote)
+3. [Local Only](#local-only)
+  1. [`convert_cts3`](#fab-convert_cts3)
+  2. [`clean`](#fab-clean)
+  3. [`push_texts`](#fab-push_texts)
+  4. [`push_xq`](#fab-push_xq)
+  5. [`push_inv`](#fab-push_inv)
+4. [Local and Remote](#local-and-remote)
   1. **Important** : [`set_hosts`](#fab-set_hosts)
-  2. **Important** : [`as_service`](#fab-as_service)
+  2. **Important** : [`localhost`](#fab-localhost)
   3. [`deploy`](#fab-deploy)
   4. [`db_start`](#fab-db_start)
   5. [`db_stop`](#fab-db_stop)
   6. [`db_restart`](#fab-db_restart)
-4.	[Remote](#remote)
-  1. [`available_version`](#fab-available_version)
-  1. rollback
+  7. [`db_restore`](#fab-db_restore)
+  8. [`db_backup`](#fab-db_backup)
+4. [Remote](#remote)
+  1. [`available_versions`](#fab-available_versions)
+  2. [`rollback`](#fab-rollback)
 
 ##Introduction
 
@@ -58,7 +56,7 @@ Test your inventories and texts. Tested (as of 14/01/2015) :
 |--------------------|---------|-------------
 | nosuccess          | False   | If set to True, successes in tests won't be printed
 | ignore_replication | False   | If set to True, replication of CitationMapping in Tei Files tei:refState won't be checked
-| no_color			 | False   | If set to True, results won't be color formatted
+| no_color           | False   | If set to True, results won't be color formatted
 
 **Examples**
 
@@ -66,126 +64,43 @@ Test your inventories and texts. Tested (as of 14/01/2015) :
 
 ##Local only
 
-###fab db_start
-
-**Definition**
-
-Start the database
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|localhost			 | False   | If set to True, start the local database
-
-**Examples**
-
-`fab db_start:localhost=True`
-
-###fab db_stop
-
-**Definition**
-
-Stop the database
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|localhost			 | False   | If set to True, start the local database
-
-**Examples**
-
-`fab db_stop:localhost=True`
-
-###fab db_restore
-
-**Definition**
-
-Restore the database
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|localhost			 | False   | If set to True, start the local database
-|cts 			     | 5       | Version of the CTS API (3 or 5)
-
-**Examples**
-`fab db_restore:cts=3&localhost=True`
-
-###fab db_backup
-
-**Definition**
-
-Make a dump of the database
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|localhost			 | False   | If set to True, start the local database
-|cts 			     | 5       | Version of the CTS API (3 or 5)
-
-**Examples**
-
-`fab db_restore:cts=5`
-
 ###fab push_texts
 
 **Definition**
 
-Push texts in corpora to the database
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|localhost			 | True	   | If set to false, push to a defined environment
-
-**Warning** : This behaviour will be changed soon.
+Push texts in corpora to the database. Requires localhost prefix
 
 **Examples**
 
-
+`fab localhost push_texts`
 
 ###fab push_xq
 
 **Definition**
 
-Push the XQuery to the database
+Push the XQuery to the database. Requires localhost prefix
 
 **Parameters**
 
 | Parameter          | Default | Description 
 |--------------------|---------|-------------
-|localhost	    		 | True	   | If set to false, push to a defined environment
 |cts 			           | 5       | Version of the CTS API (3 or 5)
 
 **Warning** : This behaviour will be changed soon.
 
 **Examples**
 
-`fab push_xq:cts=3`
+`fab localhost push_xq:cts=3`
 
 ###fab push_inv
 
 **Definition**
 
-Push inventory to the database
-
-**Parameters**
-
-| Parameter          | Default | Description 
-|--------------------|---------|-------------
-|localhost		     	 | True	   | If set to false, push to a defined environment
-
-**Warning** : This behaviour will be changed soon.
+Push inventory to the database. Requires localhost prefix
 
 **Examples**
 
-`fab push_inv`
-
+`fab localhost push_inv`
 
 ###fab convert_cts3
 
@@ -215,7 +130,7 @@ Clean the building dir in case something went wrong.
 
 `fab clean`
 
-##Remote
+##Local and remote
 
 ###fab set_hosts
 
@@ -233,6 +148,12 @@ Set host to which the remote commands should be sent to, referring to the json c
 
 As this function as no default and one parameter, you can run it without naming the parameter `fab set_hosts:hostname`. Through, this function does nothing by itself, so you need to put something after it.
 
+###fab localhost
+
+**Definition**
+
+Set the local machine as the destination for the database and the API. As `set_hosts:hostname`, this is only a prefix function which should be followed by an action to take.
+
 ###fab deploy
 
 **Definition**
@@ -245,8 +166,73 @@ Deploy the CTS-API and its text to a given host
 |--------------------|----------------|-------------
 |convert 		       	 | True   		  | If set to False, does not convert cts3 to cts5
 |localhost	    		 | False  		  | 
-|*as_service	    	 | NotImplemented | Not implemented yet
 
 **Examples**
 
 `fab set_host:host_name deploy:convert=False`
+
+
+###fab db_start
+
+**Definition**
+
+Start the database, *eg* : `fab localhost db_start` will start your database locally
+
+###fab db_stop
+
+**Definition**
+
+Stop the database, *eg* : `fab set_hosts:pompei db_stop` will start your database remotely on host pompei
+
+###fab db_restart
+
+**Definition**
+
+Retart the database, *eg* : `fab localhost db_restart` will restart your database locally
+
+###fab db_restore
+
+**Definition**
+
+Restore the database
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|cts                 | 5       | Version of the CTS API (3 or 5)
+|source_dir          |         | Path to folder where dumps can be found
+
+**Examples**
+`fab localhost db_restore:cts=3`
+
+###fab db_backup
+
+**Definition**
+
+Make a dump of the database
+
+**Parameters**
+
+| Parameter          | Default | Description 
+|--------------------|---------|-------------
+|cts                 | 5       | Version of the CTS API (3 or 5)
+|version             |         | Version of the database to backup, by default, the last installed
+
+**Examples**
+
+`fab set_hosts:pompei db_backup:cts=5`
+
+##Remote
+
+###fab available_versions
+
+Given a remote host, list all available version for backup and rollback
+
+**Example**:
+
+`fab set_hosts:pompei available_versions`
+
+###fab rollback
+
+Placeholder
