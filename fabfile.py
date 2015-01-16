@@ -105,13 +105,13 @@ def _define_env(build_dir=False):
     return run
 
 
-def _remove_service(service_name=None, build_dir=False):
+def _remove_service(service_name=None, local_fn=False):
     """ Remove the service link
 
     :param service_name: Name of the service
     :type service_name: String
-    :param build_dir: If true, use the building_dir env.db
-    :type build_dir: boolean
+    :param local_fn: If true, use local as a function to run commands
+    :type local_fn: boolean
     """
     if service_name is None:
         service_name = env.project_name
@@ -126,7 +126,7 @@ def _remove_service(service_name=None, build_dir=False):
     ]
 
     fn = sudo
-    if env.as_service is True or build_dir is True:
+    if local_fn is True or env.as_service is True:
         before = ["sudo " + cmd for cmd in before]
         fn = local
 
@@ -134,7 +134,7 @@ def _remove_service(service_name=None, build_dir=False):
         [fn(cmd) for cmd in before]
 
 
-def _make_service(service_name=None, build_dir=False):
+def _make_service(service_name=None, local_fn=True, db=None):
     """ Create the service link
 
     :param service_name: Name of the service
@@ -145,10 +145,8 @@ def _make_service(service_name=None, build_dir=False):
     if service_name is None:
         service_name = env.project_name
 
-    if build_dir is True:
+    if db is None:
         db = env.db
-    else:
-        db = env.remote_db
 
     make_srv = "ln -s {service_executable} /etc/init.d/{project_name}".format(
         service_executable=db.get_service_file(),
@@ -156,11 +154,11 @@ def _make_service(service_name=None, build_dir=False):
     )
 
     fn = sudo
-    if env.as_service is True:
+    if local_fn is True:
         make_srv = "sudo " + make_srv
         fn = local
 
-    _remove_service(service_name=service_name, build_dir=build_dir)
+    _remove_service(service_name=service_name, local_fn=local_fn)
     fn(make_srv)  # Make the link
 
 
@@ -290,22 +288,24 @@ def _get_build_dir():
     return env.build_dir
 
 
-def _db_setup(db=None, build_dir=True):
+def _db_setup(db=None, local_fn=True):
     """ Setup the database
 
     :param db: DB Instance to set up
     :type db: cts.software.DB
+    :param local_fn: Use of local instead of run/sudo
+    :type local_fn: boolean
     """
     if db is None:
         db = env.db
-    shell.run(db.setup(), _define_env(build_dir))
+    shell.run(db.setup(), _define_env(local_fn))
 
 
-def _db_stop(build_dir=False, db=None, service_name=None):
+def _db_stop(local_fn=False, db=None, service_name=None):
     """ Stop the database
 
-    :param build_dir: If this is for the build directory
-    :type build_dir: boolean
+    :param local_fn: Use of local instead of run/sudo
+    :type local_fn: boolean
     :param db: DB Instance to set up
     :type db: cts.software.DB
     :param service_name: Name of the service to start
@@ -314,23 +314,20 @@ def _db_stop(build_dir=False, db=None, service_name=None):
     if db is None:
         db = env.db
 
-    if build_dir is True:
-        shell.run(db.stop(), local)
+    if service_name is None:
+        service_name = env.project_name
+    cmd = "/etc/init.d/{service_name} stop".format(service_name=service_name)
+    if env.as_service is True or local_fn is True:
+        local("sudo " + cmd)
     else:
-        if service_name is None:
-            service_name = env.project_name
-        cmd = "/etc/init.d/{service_name} stop".format(service_name=service_name)
-        if env.as_service is True:
-            local("sudo " + cmd)
-        else:
-            sudo(cmd)
+        sudo(cmd)
 
 
-def _db_start(build_dir=False, db=None, service_name=None):
+def _db_start(local_fn=False, db=None, service_name=None):
     """ Start the database
 
-    :param build_dir: If this is for the build directory
-    :type build_dir: boolean
+    :param local_fn: Use of local instead of run/sudo
+    :type local_fn: boolean
     :param db: DB Instance to set up
     :type db: cts.software.DB
     :param service_name: Name of the service to start
@@ -339,25 +336,19 @@ def _db_start(build_dir=False, db=None, service_name=None):
     if db is None:
         db = env.db
 
-    if build_dir is True:
-        shell.run(db.start(), local)
+    if service_name is None:
+        service_name = env.project_name
+
+    cmd = "/etc/init.d/{service_name} start".format(service_name=service_name)
+    if env.as_service is True or local_fn is True:
+        local("sudo " + cmd)
     else:
-        if service_name is None:
-            service_name = env.project_name
-        cmd = "/etc/init.d/{service_name} start".format(service_name=service_name)
-        if env.as_service is True:
-            local("sudo " + cmd)
-        else:
-            sudo(cmd)
+        sudo(cmd)
 
 
 def _db_restart(service_name=None):
     """ Restart the database
 
-    :param build_dir: If this is for the build directory
-    :type build_dir: boolean
-    :param db: DB Instance to set up
-    :type db: cts.software.DB
     :param service_name: Name of the service to start
     :type service_name: str or unicode
     """
@@ -403,19 +394,22 @@ def _install_locally(convert=True, build_dir=True):
 
     db.retrieve()
 
-    _remove_service(service_name=service_name, build_dir=build_dir)
+    _remove_service(service_name=service_name, local_fn=True)
 
     if convert is True:
         convert_cts3(copy=False)
 
-    _db_setup(db=db, build_dir=build_dir)
+    _db_setup(db=db, local_fn=True)
 
     #Making service and removing service make it easier to install
     if build_dir is True:
-        service_name
-    _make_service(service_name=service_name)
+        service_name = env.local_build_name
+        env.as_service = True
+    _make_service(service_name=service_name, local_fn=True, db=db)
+    if build_dir is True:
+        env.as_service = False
 
-    _db_start(build_dir=build_dir)
+    _db_start(service_name=service_name, local_fn=True)  # As of @0036d8a, we make a service from the building dir to avoid opening a new terminal session
     _push_texts(db=db, build_dir=build_dir)
     _push_xq(db=db, build_dir=build_dir)
     _push_inv(db=db, build_dir=build_dir)
@@ -502,7 +496,7 @@ def deploy(convert=True, localhost=False, reuse_local=False):
         print("Dumping DB")
         backed_up_databases = _db_backup(cts=5, db=env.db, localhost=True)
         #We don't need our DB anymore !
-        _db_stop(build_dir=True)
+        _db_stop(local_fn=True, service_name=env.local_build_name)
 
         run("mkdir -p {0}".format(env.target["dumps"]))
         run("mkdir -p {0}".format(env.target["db"]))
@@ -511,7 +505,7 @@ def deploy(convert=True, localhost=False, reuse_local=False):
         #We put the db stuff out there
         put(local_path=env.db.file.path, remote_path=env.target["dumps"])
         _set_host_db(version=env.version)
-        _db_setup(db=env.remote_db)
+        _db_setup(db=env.remote_db, local_fn=False)
 
         #Now we do the config file dance : we update the config locally
         env.db.set_port(env.target["port"]["replicate"])
@@ -529,12 +523,12 @@ def deploy(convert=True, localhost=False, reuse_local=False):
         for backed_up_database in backed_up_databases:
             put(local_path=backed_up_database[0], remote_path=env.target["dumps"])   # We upload the files on the other end
 
-        _make_service(service_name=env.replicate_name)
-        _db_start(service_name=env.replicate_name)
+        _make_service(service_name=env.replicate_name, local_fn=False, db=env.remote_db)
+        _db_start(service_name=env.replicate_name, local_fn=False)
         _db_restore(db=env.remote_db, source_dir=env.target["dumps"], localhost=False)
 
         #No we stop old main implementation and start the new one
-        _db_stop(service_name=env.replicate_name)
+        _db_stop(service_name=env.replicate_name, local_fn=False)
 
         #We also need to put the right running port
         env.db.set_port(env.target["port"]["default"])
@@ -547,10 +541,10 @@ def deploy(convert=True, localhost=False, reuse_local=False):
                 remote_path=env.remote_db.directory + path
             )
 
-        _make_service()
+        _make_service(service_name=env.project_name, local_fn=False, db=env.remote_db)
 
-        _db_start(service_name=env.project_name)
-        _remove_service(service_name=env.local_build_name, build_dir=True)
+        _db_start(service_name=env.project_name, local_fn=False)
+        _remove_service(service_name=env.local_build_name, local_fn=True)
         clean()
 
 
@@ -566,9 +560,13 @@ def push_texts():
     _set_host_db()
     _corpora_config()
     db = env.remote_db
+    local_fn = False
+
+    if env.as_service is True:
+        local_fn = True
 
     with warn_only():
-        _db_start(build_dir=False, service_name=env.project_name)
+        _db_start(local_fn=local_fn, service_name=env.project_name)
 
     _push_texts(db=db, build_dir=False)
 
@@ -578,9 +576,13 @@ def push_xq(cts=5):
     """ Push XQueries to the Database """
     _set_host_db()
     db = env.remote_db
+    local_fn = False
+
+    if env.as_service is True:
+        local_fn = True
 
     with warn_only():
-        _db_start(build_dir=False, service_name=env.project_name)
+        _db_start(local_fn=local_fn, service_name=env.project_name)
 
     _push_xq(db=db, build_dir=False, cts=int(cts))
 
@@ -591,9 +593,13 @@ def push_inv():
     _set_host_db()
     _corpora_config()
     db = env.remote_db
+    local_fn = False
+
+    if env.as_service is True:
+        local_fn = True
 
     with warn_only():
-        _db_start(build_dir=False, service_name=env.project_name)
+        _db_start(local_fn=local_fn, service_name=env.project_name)
 
     _push_inv(db=db, build_dir=False)
 
@@ -602,7 +608,11 @@ def push_inv():
 def db_stop():
     """ Stop the database """
     _set_host_db()
-    _db_stop(db=env.remote_db, build_dir=False)
+    local_fn = False
+
+    if env.as_service is True:
+        local_fn = True
+    _db_stop(db=env.remote_db, local_fn=local_fn)
 
 
 @task
@@ -616,7 +626,11 @@ def db_restart():
 def db_start():
     """ Start the database """
     _set_host_db()
-    _db_start(db=env.remote_db, build_dir=False)
+    local_fn = False
+
+    if env.as_service is True:
+        local_fn = True
+    _db_start(db=env.remote_db, local_fn=local_fn)
 
 
 @task
