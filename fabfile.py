@@ -42,6 +42,7 @@ def _set_host_db(version=None):
 
     :param version: Version to use. If set to none, will retrieve the last automatically
     """
+    _db_config()
 
     remote_user = Credential()
     remote_user.from_dic(env.target["user"])
@@ -370,6 +371,26 @@ def _db_restart(service_name=None):
         sudo(cmd)
 
 
+def _push_texts(db, build_dir):
+    documents = []
+    for corpus in env.corpora:
+        for resource in corpus.resources:
+            documents = documents + resource.getTexts(if_exists=True)
+
+    shell.run(db.put(documents), _define_env(build_dir))
+
+
+def _push_xq(db, build_dir, cts=5):
+    shell.run(db.feedXQuery(version=cts), _define_env(build_dir))
+
+
+def _push_inv(db, build_dir):
+    for corpus in env.corpora:
+        for resource in corpus.resources:
+            if resource.inventory.path is not None:
+                shell.run(db.put((resource.inventory.path, "repository/inventory")), _define_env(build_dir))
+
+
 def _install_locally(convert=True, build_dir=True):
     db = env.db
     service_name = env.local_build_name
@@ -396,9 +417,9 @@ def _install_locally(convert=True, build_dir=True):
     _make_service(service_name=service_name)
 
     _db_start(build_dir=build_dir)
-    push_texts(build_dir=build_dir, start=False)
-    push_xq(build_dir=build_dir, start=False)
-    push_inv(build_dir=build_dir, start=False)
+    _push_texts(db=db, build_dir=build_dir)
+    _push_xq(db=db, build_dir=build_dir)
+    _push_inv(db=db, build_dir=build_dir)
 
 
 # Environments related tasks
@@ -541,56 +562,51 @@ def clean():
 
 
 @task
-def push_texts(build_dir=True, start=True):
+def push_texts():
     """ Push Corpora to the Database """
     _init()
-    db = env.db
+    db = env.remote_db
+    build_dir = False
 
-    if start is True:
+    if env.as_service is True:
+        build_dir = True
+
+    with warn_only():
         _db_start(build_dir=build_dir)
 
-    if build_dir is True:
-        db = env.remote_db
-
-    documents = []
-    for corpus in env.corpora:
-        for resource in corpus.resources:
-            documents = documents + resource.getTexts(if_exists=True)
-
-    shell.run(db.put(documents), _define_env(build_dir))
+    _push_texts(db=db, build_dir=build_dir)
 
 
 @task
-def push_xq(cts=5, build_dir=True, start=True):
+def push_xq(cts=5, build_dir=True):
     """ Push XQueries to the Database """
     _init()
-    db = env.db
+    db = env.remote_db
+    build_dir = False
 
-    if start is True:
-        _db_start(build_dir=build_dir)
+    if env.as_service is True:
+        build_dir = True
 
-    if build_dir is True:
-        db = env.remote_db
+    with warn_only():
+        _db_start(build_dir=build_dir, service_name=env.project_name)
 
-    shell.run(db.feedXQuery(version=int(cts)), _define_env(build_dir))
+    _push_xq(db=db, build_dir=build_dir, cts=int(cts))
 
 
 @task
-def push_inv(build_dir=True, start=True):
+def push_inv(build_dir=True):
     """ Push inventory to the Database """
     _init()
-    db = env.db
+    db = env.remote_db
+    build_dir = False
 
-    if start is True:
-        _db_start(build_dir=build_dir)
+    if env.as_service is True:
+        build_dir = True
 
-    if build_dir is True:
-        db = env.remote_db
+    with warn_only():
+        _db_start(build_dir=build_dir, service_name=env.project_name)
 
-    for corpus in env.corpora:
-        for resource in corpus.resources:
-            if resource.inventory.path is not None:
-                shell.run(db.put((resource.inventory.path, "repository/inventory")), _define_env(build_dir))
+    _push_inv(db=db, build_dir=build_dir)
 
 
 @task
